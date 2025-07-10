@@ -1,0 +1,6 @@
+@Decolei.net_HostAddress = http://localhost:5245
+
+GET {{Decolei.net_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

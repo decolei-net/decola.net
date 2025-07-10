@@ -1,0 +1,19 @@
+﻿{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "http://localhost:5245",
+      // A linha abaixo foi alterada para "" (vazio).
+      // Isso diz ao navegador para abrir a raiz do site (http://localhost:5245),
+      // que é onde o Swagger está configurado para aparecer.
+      "launchUrl": "",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+    // O perfil HTTPS foi removido para simplificar e evitar erros.
+  }
+}
