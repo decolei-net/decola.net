@@ -54,3 +54,24 @@ TestResults/
 
 ## Publish ##
 publish/
+
+# Arquivos de cache e índice
+*.db
+*.db-shm
+*.db-wal
+*.suo
+*.user
+*.csproj.user
+
+# Binários
+*.dll
+*.exe
+*.bin
+*.pdb
+
+# Pastas de build
+bin/
+obj/
+
+# Arquivos de configuração locais
+appsettings.Development.json

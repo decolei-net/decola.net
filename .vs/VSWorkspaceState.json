@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\.github",
+    "\\.github\\workflows",
+    "\\Controllers",
+    "\\Data",
+    "\\DTOs",
+    "\\Models",
+    "\\Properties"
+  ],
+  "SelectedNode": "\\.gitignore",
+  "PreviewInSolutionExplorer": false
+}
