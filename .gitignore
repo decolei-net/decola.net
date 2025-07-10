@@ -75,3 +75,15 @@ obj/
 
 # Arquivos de configuração locais
 appsettings.Development.json
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.wsuo
+
+# Layouts do editor
+DocumentLayout.json
+DocumentLayout.backup.json
