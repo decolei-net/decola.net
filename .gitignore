@@ -1,0 +1,56 @@
+## Build folders ##
+bin/
+obj/
+out/
+
+## User-specific files ##
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## ASP.NET Secrets ##
+secrets.json
+
+## Configuração local (não suba segredos!) ##
+appsettings.Development.json
+appsettings.Local.json
+*.env
+
+## Logs ##
+*.log
+
+## VS Code settings ##
+.vscode/
+
+## Rider ##
+.idea/
+
+## Sistema operacional ##
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+## Pacotes ##
+packages/
+*.nupkg
+*.snupkg
+
+## Backup e temporários ##
+*.bak
+*.tmp
+*.swp
+
+## SQLite ou outros DB locais ##
+*.db
+*.sqlite
+
+## Teste de cobertura (coverlet, etc) ##
+coverage/
+TestResults/
+
+## Git merge e rebase temporários ##
+*.orig
+
+## Publish ##
+publish/
