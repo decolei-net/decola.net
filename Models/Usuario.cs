@@ -5,20 +5,16 @@ using Decolei.net.Repositories;
 
 namespace Decolei.net.Models
 {
-    public class Usuario : IdentityUser<int> // Herda do Identity usando INT como chave
+    public class Usuario : IdentityUser<int>
     {
-        // Id (já vem do IdentityUser<int>)
-        // UserName (vamos mapear para Usuario_Nome)
-        // Email (já vem do IdentityUser)
-        // PasswordHash (vamos mapear para Usuario_Senha)
-        // PhoneNumber (já vem do IdentityUser, vamos mapear para Usuario_Telefone)
+        // Id, UserName, Email, PasswordHash, PhoneNumber já vêm do IdentityUser<int>
 
         // Propriedades EXCLUSIVAS do nosso banco/tabela
         public string? Documento { get; set; }
+        public string? Perfil { get; set; } // coluna customizada de "Role"
 
-        [Required(ErrorMessage = "O campo Perfil é obrigatório.")]
-        [RegularExpression("^(admin|cliente)$", ErrorMessage = "Perfil deve ser 'admin' ou 'cliente'")]
-        public string? Perfil { get; set; }
+        // NOVA PROPRIEDADE PARA O NOME COMPLETO DE EXIBIÇÃO
+        public string? NomeCompleto { get; set; } // Esta é a propriedade que aceitará espaços
 
         public virtual ICollection<Reserva> Reservas { get; set; } = new List<Reserva>();
         public virtual ICollection<Avaliacao> Avaliacoes { get; set; } = new List<Avaliacao>();

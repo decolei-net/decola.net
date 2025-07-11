@@ -5,12 +5,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
-// No seu tipo de projeto, toda a lógica de inicialização precisa
-// estar dentro de uma classe, por convenção chamada 'Program'.
+// Usings adicionais para JWT
+using Microsoft.AspNetCore.Authentication; // ESSENCIAL para AddAuthentication()
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 public class Program
 {
-    // O método 'Main' é o ponto de entrada da sua aplicação.
-    public static void Main(string[] args)
+    // O método 'Main' agora é assíncrono para permitir await
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -32,28 +36,120 @@ public class Program
             options.Password.RequireNonAlphanumeric = false;
             options.Password.RequiredLength = 6;
             options.SignIn.RequireConfirmedAccount = false;
+            // Configurações para UserName e Email (já que Email será o login)
+            options.User.RequireUniqueEmail = true; // Garante que o email seja único
+            options.SignIn.RequireConfirmedEmail = false; // Não exige confirmação de email para login
         })
         .AddEntityFrameworkStores<DecoleiDbContext>();
 
-        // 3. REGISTRAR SERVIÇOS DE AUTENTICAÇÃO E AUTORIZAÇÃO
-        builder.Services.AddAuthentication();
+        // 3. REGISTRAR SERVIÇOS DE AUTENTICAÇÃO E AUTORIZAÇÃO (CONFIGURADO PARA JWT)
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+                ValidAudience = builder.Configuration["JwtSettings:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]!))
+            };
+        });
         builder.Services.AddAuthorization();
 
         // 4. REGISTRAR CONTROLLERS E SERVIÇOS DO SWAGGER
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
 
-        // ESTA É A CONFIGURAÇÃO CORRETA E COMPLETA DO SWAGGERGEN
         builder.Services.AddSwaggerGen(c =>
         {
-            // Esta linha cria um "documento" de API e fornece as informações
-            // essenciais que o Swagger precisa para renderizar a UI.
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "Decolei.net API", Version = "v1" });
+            // Adicionado para permitir autorização JWT no Swagger UI
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.ApiKey,
+                Scheme = "Bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+            });
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    new string[] {}
+                }
+            });
         });
 
         // --- FIM DA CONFIGURAÇÃO DE SERVIÇOS ---
 
         var app = builder.Build();
+
+        // --- Seeding Inicial do Admin (DEVE VIR ANTES DE app.Run()) ---
+        using (var scope = app.Services.CreateScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Usuario>>();
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
+
+            // Garante que a role "ADMIN" existe
+            if (!await roleManager.RoleExistsAsync("ADMIN"))
+            {
+                await roleManager.CreateAsync(new IdentityRole<int>("ADMIN"));
+            }
+            // Garante que a role "CLIENTE" existe (pode ser criada no registro tbm)
+            if (!await roleManager.RoleExistsAsync("CLIENTE"))
+            {
+                await roleManager.CreateAsync(new IdentityRole<int>("CLIENTE"));
+            }
+            // Garante que a role "ATENDENTE" existe
+            if (!await roleManager.RoleExistsAsync("ATENDENTE"))
+            {
+                await roleManager.CreateAsync(new IdentityRole<int>("ATENDENTE"));
+            }
+
+
+            // Cria o primeiro usuário Admin se ele não existir
+            var adminUser = await userManager.FindByEmailAsync("admin@decolei.net");
+            if (adminUser == null)
+            {
+                adminUser = new Usuario
+                {
+                    UserName = "admin@decolei.net", // UserName será o email
+                    Email = "admin@decolei.net",
+                    Documento = "00000000000",
+                    Perfil = "ADMIN", // Atribuído ao perfil customizado
+                    PhoneNumber = "999999999",
+                    NomeCompleto = "Administrador Master" // Nome completo
+                };
+                var createResult = await userManager.CreateAsync(adminUser, "SenhaAdmin123!"); // Escolha uma senha segura!
+                if (createResult.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(adminUser, "ADMIN"); // Adiciona à role do Identity
+                    Console.WriteLine("Usuário Admin inicial criado!");
+                }
+                else
+                {
+                    Console.WriteLine($"Erro ao criar usuário Admin: {string.Join(", ", createResult.Errors.Select(e => e.Description))}");
+                }
+            }
+        }
+        // --- Fim do Seeding ---
+
 
         // --- CONFIGURAÇÃO DO PIPELINE DE REQUISIÇÃO ---
 
@@ -72,12 +168,12 @@ public class Program
         // app.UseHttpsRedirection(); // Mantenha comentado se estiver dando erro de porta HTTPS
 
         // A ordem destes middlewares é fundamental
-        app.UseRouting(); // Adicionado para garantir o roteamento correto
-        app.UseAuthentication();
-        app.UseAuthorization();
+        app.UseRouting();
+        app.UseAuthentication(); // Deve vir ANTES de UseAuthorization
+        app.UseAuthorization();  // Deve vir DEPOIS de UseAuthentication
 
         app.MapControllers();
 
-        app.Run();
+        await app.RunAsync(); // Use await aqui para o Main assíncrono
     }
 }
