@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
+using Decolei.net.Interfaces; 
+using Decolei.net.Repositories; 
 
 namespace Decolei.net.Models
 {

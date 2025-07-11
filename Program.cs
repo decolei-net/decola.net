@@ -22,6 +22,7 @@ public class Program
         builder.Services.AddDbContext<DecoleiDbContext>(options =>
             options.UseSqlServer(connectionString));
 
+        builder.Services.AddScoped<Decolei.net.Interfaces.IPacoteRepository, Decolei.net.Repositories.PacoteRepository>();
         // 2. REGISTRAR E CONFIGURAR O ASP.NET IDENTITY
         builder.Services.AddIdentity<Usuario, IdentityRole<int>>(options =>
         {

@@ -1,7 +1,36 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\k.de.araujo.silva\\source\\repos\\kamyllaa\\decola.net\\",
-  "Documents": [],
+  "WorkspaceRootPath": "C:\\Users\\a.martins.santos\\Desktop\\decola.net\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{23EEC5B6-4D4F-48D3-8436-28673A2AA3A2}|Decolei.net.csproj|c:\\users\\a.martins.santos\\desktop\\decola.net\\repository\\pacoterepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{23EEC5B6-4D4F-48D3-8436-28673A2AA3A2}|Decolei.net.csproj|solutionrelative:repository\\pacoterepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{23EEC5B6-4D4F-48D3-8436-28673A2AA3A2}|Decolei.net.csproj|c:\\users\\a.martins.santos\\desktop\\decola.net\\controllers\\pacotescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{23EEC5B6-4D4F-48D3-8436-28673A2AA3A2}|Decolei.net.csproj|solutionrelative:controllers\\pacotescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{23EEC5B6-4D4F-48D3-8436-28673A2AA3A2}|Decolei.net.csproj|c:\\users\\a.martins.santos\\desktop\\decola.net\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{23EEC5B6-4D4F-48D3-8436-28673A2AA3A2}|Decolei.net.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{23EEC5B6-4D4F-48D3-8436-28673A2AA3A2}|Decolei.net.csproj|c:\\users\\a.martins.santos\\desktop\\decola.net\\dtos\\criarpacoteviagemdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{23EEC5B6-4D4F-48D3-8436-28673A2AA3A2}|Decolei.net.csproj|solutionrelative:dtos\\criarpacoteviagemdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{23EEC5B6-4D4F-48D3-8436-28673A2AA3A2}|Decolei.net.csproj|c:\\users\\a.martins.santos\\desktop\\decola.net\\models\\usuario.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{23EEC5B6-4D4F-48D3-8436-28673A2AA3A2}|Decolei.net.csproj|solutionrelative:models\\usuario.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{23EEC5B6-4D4F-48D3-8436-28673A2AA3A2}|Decolei.net.csproj|c:\\users\\a.martins.santos\\desktop\\decola.net\\interfaces\\ipacoterepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{23EEC5B6-4D4F-48D3-8436-28673A2AA3A2}|Decolei.net.csproj|solutionrelative:interfaces\\ipacoterepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{23EEC5B6-4D4F-48D3-8436-28673A2AA3A2}|Decolei.net.csproj|c:\\users\\a.martins.santos\\desktop\\decola.net\\controllers\\usuariocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{23EEC5B6-4D4F-48D3-8436-28673A2AA3A2}|Decolei.net.csproj|solutionrelative:controllers\\usuariocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -9,8 +38,97 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 4,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\a.martins.santos\\Desktop\\decola.net\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "C:\\Users\\a.martins.santos\\Desktop\\decola.net\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAABEAAAAAAAAAAAAAwBwAAAAyAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-10T22:15:34.832Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "CriarPacoteViagemDto.cs",
+              "DocumentMoniker": "C:\\Users\\a.martins.santos\\Desktop\\decola.net\\DTOs\\CriarPacoteViagemDto.cs",
+              "RelativeDocumentMoniker": "DTOs\\CriarPacoteViagemDto.cs",
+              "ToolTip": "C:\\Users\\a.martins.santos\\Desktop\\decola.net\\DTOs\\CriarPacoteViagemDto.cs",
+              "RelativeToolTip": "DTOs\\CriarPacoteViagemDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-10T22:11:12.063Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "PacotesController.cs",
+              "DocumentMoniker": "C:\\Users\\a.martins.santos\\Desktop\\decola.net\\Controllers\\PacotesController.cs",
+              "RelativeDocumentMoniker": "Controllers\\PacotesController.cs",
+              "ToolTip": "C:\\Users\\a.martins.santos\\Desktop\\decola.net\\Controllers\\PacotesController.cs",
+              "RelativeToolTip": "Controllers\\PacotesController.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAABAAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-10T22:09:50.201Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "PacoteRepository.cs",
+              "DocumentMoniker": "C:\\Users\\a.martins.santos\\Desktop\\decola.net\\Repository\\PacoteRepository.cs",
+              "RelativeDocumentMoniker": "Repository\\PacoteRepository.cs",
+              "ToolTip": "C:\\Users\\a.martins.santos\\Desktop\\decola.net\\Repository\\PacoteRepository.cs",
+              "RelativeToolTip": "Repository\\PacoteRepository.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-10T22:08:11.39Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Usuario.cs",
+              "DocumentMoniker": "C:\\Users\\a.martins.santos\\Desktop\\decola.net\\Models\\Usuario.cs",
+              "RelativeDocumentMoniker": "Models\\Usuario.cs",
+              "ToolTip": "C:\\Users\\a.martins.santos\\Desktop\\decola.net\\Models\\Usuario.cs",
+              "RelativeToolTip": "Models\\Usuario.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAeAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-10T21:59:48.117Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "IPacoteRepository.cs",
+              "DocumentMoniker": "C:\\Users\\a.martins.santos\\Desktop\\decola.net\\Interfaces\\IPacoteRepository.cs",
+              "RelativeDocumentMoniker": "Interfaces\\IPacoteRepository.cs",
+              "ToolTip": "C:\\Users\\a.martins.santos\\Desktop\\decola.net\\Interfaces\\IPacoteRepository.cs",
+              "RelativeToolTip": "Interfaces\\IPacoteRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-10T22:07:20.949Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "UsuarioController.cs",
+              "DocumentMoniker": "C:\\Users\\a.martins.santos\\Desktop\\decola.net\\Controllers\\UsuarioController.cs",
+              "RelativeDocumentMoniker": "Controllers\\UsuarioController.cs",
+              "ToolTip": "C:\\Users\\a.martins.santos\\Desktop\\decola.net\\Controllers\\UsuarioController.cs",
+              "RelativeToolTip": "Controllers\\UsuarioController.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAxwAsAAAAzAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-10T22:03:26.96Z"
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
@@ -18,10 +136,6 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c64b9c2-e352-428e-a56d-0ace190b99a6}"
             }
           ]
         }
