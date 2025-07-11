@@ -5,11 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Decolei.net.Data
 {
-    // Explicação da Herança:
-    // Herdar de 'IdentityDbContext<Usuario, IdentityRole<int>, int>' faz 3 coisas:
-    // 1. Informa que a classe de usuário é a sua classe 'Usuario' customizada.
-    // 2. Informa que a classe de Role (perfil) é a padrão do Identity, mas com chave 'int'.
-    // 3. Informa que o tipo da chave primária em todas as tabelas do Identity é 'int'.
     public class DecoleiDbContext : IdentityDbContext<Usuario, IdentityRole<int>, int>
     {
         // DbSets para suas tabelas de negócio
@@ -23,7 +18,6 @@ namespace Decolei.net.Data
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            // É CRUCIAL chamar este método primeiro para configurar o Identity.
             base.OnModelCreating(builder);
 
             #region Mapeamento de Usuario e Identity
@@ -34,32 +28,45 @@ namespace Decolei.net.Data
                 entity.ToTable("Usuario");
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Id).HasColumnName("Usuario_Id");
-                entity.Property(e => e.UserName).HasColumnName("Usuario_Nome").HasMaxLength(100).IsRequired();
-                entity.Property(e => e.NormalizedUserName).HasColumnName("Usuario_Nome_Normalizado").HasMaxLength(100);
+
+                // Mapeamento do UserName do Identity (agora para Usuario_LoginName)
+                entity.Property(e => e.UserName).HasColumnName("Usuario_LoginName").HasMaxLength(100).IsRequired();
+                entity.Property(e => e.NormalizedUserName).HasColumnName("Usuario_LoginName_Normalizado").HasMaxLength(100);
+
+                // Mapeamento do Email do Identity
                 entity.Property(e => e.Email).HasColumnName("Usuario_Email").HasMaxLength(100).IsRequired();
                 entity.Property(e => e.NormalizedEmail).HasColumnName("Usuario_Email_Normalizado").HasMaxLength(100);
+
                 entity.Property(e => e.PasswordHash).HasColumnName("Usuario_Senha").HasMaxLength(255).IsRequired();
                 entity.Property(e => e.PhoneNumber).HasColumnName("Usuario_Telefone").HasMaxLength(20);
                 entity.Property(e => e.Documento).HasColumnName("Usuario_Documento").HasMaxLength(20).IsRequired();
                 entity.Property(e => e.Perfil).HasColumnName("Usuario_Perfil").HasMaxLength(20).IsRequired();
+
+                // NOVO: Mapeamento da propriedade NomeCompleto para a nova coluna do banco
+                entity.Property(e => e.NomeCompleto).HasColumnName("Usuario_NomeCompleto").HasMaxLength(100);
+
                 entity.HasIndex(e => e.Email, "Usuario_Email_UQ").IsUnique();
                 entity.HasIndex(e => e.Documento, "Usuario_Documento_UQ").IsUnique();
+                // Ajustar ou manter índices para o UserName (agora LoginName)
+                entity.HasIndex(e => e.NormalizedUserName, "Usuario_LoginName_Normalizado_UQ").IsUnique();
+                entity.HasIndex(e => e.NormalizedEmail, "Usuario_Email_Normalizado_UQ").IsUnique();
             });
 
-            // --- MUDANÇA PRINCIPAL AQUI ---
             // Mapeamos as entidades do Identity para as tabelas padrão que você criou.
-            // As linhas que ignoravam 'IdentityRole' e 'IdentityUserRole' foram removidas.
             builder.Entity<IdentityUserClaim<int>>(entity => entity.ToTable("AspNetUserClaims"));
             builder.Entity<IdentityRole<int>>(entity => entity.ToTable("AspNetRoles"));
             builder.Entity<IdentityUserRole<int>>(entity => entity.ToTable("AspNetUserRoles"));
+            builder.Entity<IdentityRoleClaim<int>>(entity => entity.ToTable("AspNetRoleClaims")); // <--- ESSA LINHA NÃO É MAIS IGNORADA
 
             // Continuamos ignorando as outras tabelas que não estamos usando para evitar erros.
             builder.Ignore<IdentityUserLogin<int>>();
             builder.Ignore<IdentityUserToken<int>>();
-            builder.Ignore<IdentityRoleClaim<int>>();
             #endregion
 
             #region Mapeamento das Outras Entidades
+
+            // ... (Seu mapeamento das outras entidades: PacoteViagem, Reserva, Viajante, Pagamento, Avaliacao) ...
+            // Este trecho não foi alterado nas últimas discussões, então mantenha o que você já tem aqui.
 
             // --- MAPEAMENTO DA ENTIDADE 'PacoteViagem' ---
             builder.Entity<PacoteViagem>(entity =>
