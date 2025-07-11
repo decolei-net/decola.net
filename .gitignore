@@ -1,0 +1,89 @@
+## Build folders ##
+bin/
+obj/
+out/
+ 
+## User-specific files ##
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+ 
+## ASP.NET Secrets ##
+secrets.json
+ 
+## Configuração local (não suba segredos!) ##
+appsettings.Development.json
+appsettings.Local.json
+*.env
+ 
+## Logs ##
+*.log
+ 
+## VS Code settings ##
+.vscode/
+ 
+## Rider ##
+.idea/
+ 
+## Sistema operacional ##
+.DS_Store
+Thumbs.db
+ehthumbs.db
+ 
+## Pacotes ##
+packages/
+*.nupkg
+*.snupkg
+ 
+## Backup e temporários ##
+*.bak
+*.tmp
+*.swp
+ 
+## SQLite ou outros DB locais ##
+*.db
+*.sqlite
+ 
+## Teste de cobertura (coverlet, etc) ##
+coverage/
+TestResults/
+ 
+## Git merge e rebase temporários ##
+*.orig
+ 
+## Publish ##
+publish/
+ 
+# Arquivos de cache e índice
+*.db
+*.db-shm
+*.db-wal
+*.suo
+*.user
+*.csproj.user
+ 
+# Binários
+*.dll
+*.exe
+*.bin
+*.pdb
+ 
+# Pastas de build
+bin/
+obj/
+ 
+# Arquivos de configuração locais
+appsettings.Development.json
+ 
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.wsuo
+ 
+# Layouts do editor
+DocumentLayout.json
+DocumentLayout.backup.json
