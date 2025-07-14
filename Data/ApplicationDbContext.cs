@@ -82,6 +82,19 @@ namespace Decolei.net.Data
                 entity.Property(e => e.Valor).HasColumnName("PacoteViagem_Valor").HasColumnType("decimal(10, 2)");
                 entity.Property(e => e.DataInicio).HasColumnName("PacoteViagem_DataInicio").HasColumnType("datetime");
                 entity.Property(e => e.DataFim).HasColumnName("PacoteViagem_DataFim").HasColumnType("datetime");
+
+                // --- INÍCIO DA MUDANÇA ---
+                // Adicione a coluna para a chave estrangeira
+                entity.Property(e => e.UsuarioId).HasColumnName("Usuario_Id").IsRequired();
+
+                // Configura a relação com a tabela Usuario
+                entity.HasOne(p => p.Usuario)
+                      .WithMany(u => u.PacotesCriados) // um usuário tem muitos pacotes criados
+                      .HasForeignKey(p => p.UsuarioId) // a chave estrangeira é UsuarioId
+                      .OnDelete(DeleteBehavior.ClientSetNull) // Evita deleção em cascata
+                      .HasConstraintName("PacoteViagem_Usuario_FK");
+                // --- FIM DA MUDANÇA ---
+
             });
 
             // --- MAPEAMENTO DA ENTIDADE 'Reserva' ---
@@ -144,6 +157,8 @@ namespace Decolei.net.Data
                 entity.HasOne(d => d.PacoteViagem).WithMany(p => p.Avaliacoes).HasForeignKey(d => d.PacoteViagem_Id).OnDelete(DeleteBehavior.ClientSetNull).HasConstraintName("Avaliacao_PacoteViagem_FK");
             });
             #endregion
+
+
         }
     }
 }

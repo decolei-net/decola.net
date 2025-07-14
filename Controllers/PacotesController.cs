@@ -1,4 +1,5 @@
 ﻿using Decolei.net.DTOs;
+using System.Security.Claims; // para ClaimsPrincipal 
 using Decolei.net.Interfaces; // MUDOU AQUI
 using Microsoft.AspNetCore.Authorization; // Para usar [Authorize]
 using Decolei.net.Models;
@@ -33,6 +34,19 @@ namespace Decolei.net.Controllers
                 return BadRequest(ModelState);
             }
 
+            // --- INÍCIO DA MUDANÇA ---
+
+            // 1. Pegar o ID do usuário logado a partir do token.
+            // A claim 'NameIdentifier' guarda o ID do usuário por padrão no Identity.
+            var idUsuarioLogadoString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(idUsuarioLogadoString))
+            {
+                return Unauthorized("Não foi possível identificar o usuário.");
+            }
+            var idUsuarioLogado = int.Parse(idUsuarioLogadoString);
+
+            // --- FIM DA MUDANÇA ---
+
             var novoPacote = new PacoteViagem
             {
                 // ... mapeamento igual ao de antes
@@ -43,7 +57,8 @@ namespace Decolei.net.Controllers
                 Destino = pacoteDto.Destino,
                 Valor = pacoteDto.Valor,
                 DataInicio = pacoteDto.DataInicio,
-                DataFim = pacoteDto.DataFim
+                DataFim = pacoteDto.DataFim,
+                UsuarioId = idUsuarioLogado
             };
 
             await _pacoteRepository.AdicionarAsync(novoPacote); // MUDOU AQUI

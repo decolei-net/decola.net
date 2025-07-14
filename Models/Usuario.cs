@@ -16,6 +16,11 @@ namespace Decolei.net.Models
         // NOVA PROPRIEDADE PARA O NOME COMPLETO DE EXIBIÇÃO
         public string? NomeCompleto { get; set; } // Esta é a propriedade que aceitará espaços
 
+        // --- INÍCIO DA MUDANÇA ---
+        // Coleção de pacotes criados por este usuário
+        public virtual ICollection<PacoteViagem> PacotesCriados { get; set; } = new List<PacoteViagem>();
+        // --- FIM DA MUDANÇA ---
+
         public virtual ICollection<Reserva> Reservas { get; set; } = new List<Reserva>();
         public virtual ICollection<Avaliacao> Avaliacoes { get; set; } = new List<Avaliacao>();
     }
