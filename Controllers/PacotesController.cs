@@ -1,5 +1,6 @@
 ﻿using Decolei.net.DTOs;
 using Decolei.net.Interfaces; // MUDOU AQUI
+using Microsoft.AspNetCore.Authorization; // Para usar [Authorize]
 using Decolei.net.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,6 +25,7 @@ namespace Decolei.net.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "ADMIN")]
         public async Task<ActionResult<PacoteViagem>> CriarPacote([FromBody] CriarPacoteViagemDto pacoteDto)
         {
             if (!ModelState.IsValid)
