@@ -1,14 +1,7 @@
 {
   "ExpandedNodes": [
-    "",
-    "\\.github",
-    "\\.github\\workflows",
-    "\\Controllers",
-    "\\Data",
-    "\\DTOs",
-    "\\Models",
-    "\\Properties"
+    ""
   ],
-  "SelectedNode": "\\.gitignore",
+  "SelectedNode": "\\Decolei.net.sln",
   "PreviewInSolutionExplorer": false
 }
