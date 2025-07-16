@@ -31,5 +31,17 @@ namespace Decolei.net.Repositories
             return await _context.PacotesViagem.FindAsync(id);
         }
 
+        public async Task AtualizarAsync(PacoteViagem pacote)
+        {
+            _context.PacotesViagem.Update(pacote); // marca o objeto como modificado
+            await _context.SaveChangesAsync(); // salvando alterações no banco
+        }
+
+        public async Task RemoverAsync(PacoteViagem pacote)
+        {
+            _context.PacotesViagem.Remove(pacote); // marca o objeto para remoção
+            await _context.SaveChangesAsync(); // executa delete no banco
+        }
+
     }
 }

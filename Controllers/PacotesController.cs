@@ -79,5 +79,43 @@ namespace Decolei.net.Controllers
 
             return Ok(pacote);
         }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> AtualizarPacote(int id, [FromBody] UpdatePacoteViagemDto dto)
+        {
+            var pacote = await _pacoteRepository.ObterPorIdAsync(id);
+            if(pacote == null)
+            {
+                return NotFound("Pacote Não encontrado.");
+            }
+            if (dto.Titulo != null) pacote.Titulo = dto.Titulo;
+            if (dto.Descricao != null) pacote.Descricao = dto.Descricao;
+            if (dto.ImagemURL != null) pacote.ImagemURL = dto.ImagemURL;
+            if (dto.VideoURL != null) pacote.VideoURL = dto.VideoURL;
+            if (dto.Destino != null) pacote.Destino = dto.Destino;
+            if (dto.Valor.HasValue) pacote.Valor = dto.Valor;
+            if (dto.DataInicio.HasValue) pacote.DataInicio = dto.DataInicio;
+            if (dto.DataFim.HasValue) pacote.DataFim = dto.DataFim;
+
+            await _pacoteRepository.AtualizarAsync(pacote);
+            return Ok(new { mensagem = "Pacote atualizado com sucesso!", pacote });
+        }
+
+
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> DeletarPacote(int id)
+        {
+            var pacote = await _pacoteRepository.ObterPorIdAsync(id);
+            if (pacote == null)
+            {
+                return NotFound("Pacote não encontrado");
+            }
+
+            await _pacoteRepository.RemoverAsync(pacote);
+            return Ok(new { mensagem = "Pacote excluído com sucesso!" });
+        }
     }
 }

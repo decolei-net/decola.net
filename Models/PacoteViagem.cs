@@ -3,7 +3,7 @@
     public class PacoteViagem
     {
         public int Id { get; set; }
-        public string Titulo { get; set; }
+        public string? Titulo { get; set; }
         public string? Descricao { get; set; }
         public string? ImagemURL { get; set; }
         public string? VideoURL { get; set; }
@@ -17,7 +17,7 @@
         public int UsuarioId { get; set; }
 
         // Propriedade de navegação para o usuário
-        public virtual Usuario Usuario { get; set; }
+        public virtual Usuario? Usuario { get; set; }
 
         // --- FIM DA MUDANÇA ---
         // Propriedade de navegação para as Reservas e Avaliações
