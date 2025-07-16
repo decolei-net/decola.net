@@ -7,5 +7,7 @@ namespace Decolei.net.Interfaces
         Task<IEnumerable<PacoteViagem>> ListarTodosAsync();
         Task<PacoteViagem> ObterPorIdAsync(int id);
         Task AdicionarAsync(PacoteViagem pacote);
+        Task AtualizarAsync(PacoteViagem pacote);
+        Task RemoverAsync(PacoteViagem pacote);
     }
 }
