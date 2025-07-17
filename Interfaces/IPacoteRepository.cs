@@ -13,5 +13,7 @@ namespace Decolei.net.Interfaces
              decimal? precoMax,
              DateTime? dataInicio,
              DateTime? dataFim);
+        Task AtualizarAsync(PacoteViagem pacote);
+        Task RemoverAsync(PacoteViagem pacote);
     }
 }

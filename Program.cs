@@ -63,7 +63,18 @@ public class Program
         });
         builder.Services.AddAuthorization();
 
-        // 4. REGISTRAR CONTROLLERS E SERVIÇOS DO SWAGGER
+        // 4. REGISTRAR CORS
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            });
+        });
+
+        // 5. REGISTRAR CONTROLLERS E SERVIÇOS DO SWAGGER
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
 
@@ -167,10 +178,14 @@ public class Program
 
         // app.UseHttpsRedirection(); // Mantenha comentado se estiver dando erro de porta HTTPS
 
+        // permitindo que front-end, mesmo rodando em outra porta ou domínio, consiga fazer requisições para a API.
+        app.UseCors("AllowAll"); // <<<<< CORS habilitado aqui
+
         // A ordem destes middlewares é fundamental
         app.UseRouting();
         app.UseAuthentication(); // Deve vir ANTES de UseAuthorization
         app.UseAuthorization();  // Deve vir DEPOIS de UseAuthentication
+
 
         app.MapControllers();
 
