@@ -7,5 +7,11 @@ namespace Decolei.net.Interfaces
         Task<IEnumerable<PacoteViagem>> ListarTodosAsync();
         Task<PacoteViagem> ObterPorIdAsync(int id);
         Task AdicionarAsync(PacoteViagem pacote);
+        Task<IEnumerable<PacoteViagem>> GetByFiltersAsync(
+             string? destino,
+             decimal? precoMin,
+             decimal? precoMax,
+             DateTime? dataInicio,
+             DateTime? dataFim);
     }
 }
