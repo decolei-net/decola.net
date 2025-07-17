@@ -75,7 +75,7 @@ namespace Decolei.net.Controllers
         // MÉTODO POST PARA CRIAR UM NOVO PACOTE
         [HttpPost]
         [Authorize(Roles = "ADMIN")]
-        public async Task<ActionResult<PacoteViagem>> CriarPacote([FromBody] CriarPacoteViagemDto pacoteDto)
+        public async Task<ActionResult<PacoteViagem>> CriarPacote([FromBody] CriarPacoteViagemDto criarPacoteDto) // Corrigido o nome do parâmetro
         {
             if (!ModelState.IsValid)
             {
@@ -96,7 +96,7 @@ namespace Decolei.net.Controllers
                 // 2. Criar o novo pacote de viagem
                 var pacote = new PacoteViagem
                 {
-                    Titulo = criarPacoteDto.Titulo,
+                    Titulo = criarPacoteDto.Titulo, // Corrigido o nome do parâmetro
                     Descricao = criarPacoteDto.Descricao,
                     ImagemURL = criarPacoteDto.ImagemURL,
                     VideoURL = criarPacoteDto.VideoURL,
