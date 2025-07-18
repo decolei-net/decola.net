@@ -3,7 +3,7 @@ using Decolei.net.Interfaces;
 using Decolei.net.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Decolei.net.Repositories
+namespace Decolei.net.Repository
 {
     public class PacoteRepository : IPacoteRepository
     {

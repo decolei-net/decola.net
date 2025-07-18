@@ -1,6 +1,6 @@
 ﻿using Decolei.net.DTOs;
 using System.Security.Claims; // para ClaimsPrincipal 
-using Decolei.net.Interfaces; // MUDOU AQUI
+using Decolei.net.Interfaces;
 using Microsoft.AspNetCore.Authorization; // Para usar [Authorize]
 using Decolei.net.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -29,23 +29,31 @@ namespace Decolei.net.Controllers
         {
             try
             {
-                bool hasFilters = !string.IsNullOrWhiteSpace(destino) ||
-                                  precoMin.HasValue || precoMax.HasValue ||
-                                  dataInicio.HasValue || dataFim.HasValue;
+                // Esta lógica de filtros pode ser movida para o repositório no futuro para um código mais limpo.
+                var pacotes = await _pacoteRepository.ListarTodosAsync();
 
-                IEnumerable<PacoteViagem> pacotes;
-
-                if (hasFilters)
+                if (!string.IsNullOrWhiteSpace(destino))
                 {
-                    pacotes = await _pacoteRepository.GetByFiltersAsync(
-                        destino, precoMin, precoMax, dataInicio, dataFim);
+                    pacotes = pacotes.Where(p => p.Destino.Contains(destino, StringComparison.OrdinalIgnoreCase));
                 }
-                else
+                if (precoMin.HasValue)
                 {
-                    pacotes = await _pacoteRepository.ListarTodosAsync();
+                    pacotes = pacotes.Where(p => p.Valor >= precoMin.Value);
+                }
+                if (precoMax.HasValue)
+                {
+                    pacotes = pacotes.Where(p => p.Valor <= precoMax.Value);
+                }
+                if (dataInicio.HasValue)
+                {
+                    pacotes = pacotes.Where(p => p.DataInicio >= dataInicio.Value);
+                }
+                if (dataFim.HasValue)
+                {
+                    pacotes = pacotes.Where(p => p.DataFim <= dataFim.Value);
                 }
 
-                return Ok(pacotes);
+                return Ok(pacotes.ToList());
             }
             catch (Exception ex)
             {
@@ -74,8 +82,8 @@ namespace Decolei.net.Controllers
 
         // MÉTODO POST PARA CRIAR UM NOVO PACOTE
         [HttpPost]
-        [Authorize(Roles = "ADMIN")]
-        public async Task<ActionResult<PacoteViagem>> CriarPacote([FromBody] CriarPacoteViagemDto criarPacoteDto) // Corrigido o nome do parâmetro
+        [Authorize(Roles = "ADMINISTRADOR,ADMIN")] // Aceita ambos os nomes para garantir
+        public async Task<ActionResult<PacoteViagem>> CriarPacote([FromBody] CriarPacoteViagemDto criarPacoteDto)
         {
             if (!ModelState.IsValid)
             {
@@ -84,8 +92,6 @@ namespace Decolei.net.Controllers
 
             try
             {
-                // 1. Pegar o ID do usuário logado a partir do token.
-                // A claim 'NameIdentifier' guarda o ID do usuário por padrão no Identity.
                 var idUsuarioLogadoString = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(idUsuarioLogadoString))
                 {
@@ -93,17 +99,18 @@ namespace Decolei.net.Controllers
                 }
                 var idUsuarioLogado = int.Parse(idUsuarioLogadoString);
 
-                // 2. Criar o novo pacote de viagem
                 var pacote = new PacoteViagem
                 {
-                    Titulo = criarPacoteDto.Titulo, // Corrigido o nome do parâmetro
+                    Titulo = criarPacoteDto.Titulo,
                     Descricao = criarPacoteDto.Descricao,
                     ImagemURL = criarPacoteDto.ImagemURL,
                     VideoURL = criarPacoteDto.VideoURL,
                     Destino = criarPacoteDto.Destino,
                     Valor = criarPacoteDto.Valor,
                     DataInicio = criarPacoteDto.DataInicio,
-                    DataFim = criarPacoteDto.DataFim
+                    DataFim = criarPacoteDto.DataFim,
+                    // --- AQUI ESTÁ A CORREÇÃO CRÍTICA ---
+                    UsuarioId = idUsuarioLogado
                 };
 
                 await _pacoteRepository.AdicionarAsync(pacote);
@@ -112,12 +119,14 @@ namespace Decolei.net.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Ocorreu um erro interno ao criar o pacote: {ex.Message}");
+                // Fornece um erro mais detalhado no log do servidor (console) para depuração
+                Console.WriteLine($"ERRO AO CRIAR PACOTE: {ex.ToString()}");
+                return StatusCode(500, $"Ocorreu um erro interno ao criar o pacote. Verifique os logs para mais detalhes.");
             }
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = "ADMINISTRADOR,ADMIN")]
         public async Task<IActionResult> AtualizarPacote(int id, [FromBody] UpdatePacoteViagemDto dto)
         {
             var pacote = await _pacoteRepository.ObterPorIdAsync(id);
@@ -125,21 +134,23 @@ namespace Decolei.net.Controllers
             {
                 return NotFound("Pacote Não encontrado.");
             }
+
+            // Atualiza apenas os campos que foram fornecidos no DTO
             if (dto.Titulo != null) pacote.Titulo = dto.Titulo;
             if (dto.Descricao != null) pacote.Descricao = dto.Descricao;
             if (dto.ImagemURL != null) pacote.ImagemURL = dto.ImagemURL;
             if (dto.VideoURL != null) pacote.VideoURL = dto.VideoURL;
             if (dto.Destino != null) pacote.Destino = dto.Destino;
-            if (dto.Valor.HasValue) pacote.Valor = dto.Valor;
-            if (dto.DataInicio.HasValue) pacote.DataInicio = dto.DataInicio;
-            if (dto.DataFim.HasValue) pacote.DataFim = dto.DataFim;
+            if (dto.Valor.HasValue) pacote.Valor = dto.Valor.Value;
+            if (dto.DataInicio.HasValue) pacote.DataInicio = dto.DataInicio.Value;
+            if (dto.DataFim.HasValue) pacote.DataFim = dto.DataFim.Value;
 
             await _pacoteRepository.AtualizarAsync(pacote);
             return Ok(new { mensagem = "Pacote atualizado com sucesso!", pacote });
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = "ADMINISTRADOR,ADMIN")]
         public async Task<IActionResult> DeletarPacote(int id)
         {
             var pacote = await _pacoteRepository.ObterPorIdAsync(id);

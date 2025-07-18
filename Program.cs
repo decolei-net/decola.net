@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication; // ESSENCIAL para AddAuthentication()
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Decolei.net.Repository;
 
 public class Program
 {
@@ -26,7 +27,7 @@ public class Program
         builder.Services.AddDbContext<DecoleiDbContext>(options =>
             options.UseSqlServer(connectionString));
 
-        builder.Services.AddScoped<Decolei.net.Interfaces.IPacoteRepository, Decolei.net.Repositories.PacoteRepository>();
+        builder.Services.AddScoped<Decolei.net.Interfaces.IPacoteRepository, PacoteRepository>();
         // 2. REGISTRAR E CONFIGURAR O ASP.NET IDENTITY
         builder.Services.AddIdentity<Usuario, IdentityRole<int>>(options =>
         {
