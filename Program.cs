@@ -27,8 +27,12 @@ public partial class Program
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
         // 1. REGISTRAR O DBCONTEXT
-        builder.Services.AddDbContext<DecoleiDbContext>(options =>
-            options.UseSqlServer(connectionString));
+        if (!builder.Environment.IsEnvironment("Testing"))
+        {
+            builder.Services.AddDbContext<DecoleiDbContext>(options =>
+                options.UseSqlServer(connectionString));
+        }
+
 
         // Adiciona o repositório ao contêiner de injeção de dependência
         builder.Services.AddScoped<IPacoteRepository, PacoteRepository>();
