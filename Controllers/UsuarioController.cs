@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace Decolei.net.Controllers
 {
@@ -44,6 +45,12 @@ namespace Decolei.net.Controllers
             if (usuarioExistente != null)
             {
                 return BadRequest("Este e-mail já está em uso.");
+            }
+
+            var cpfExistente = await _userManager.Users.FirstOrDefaultAsync(u => u.Documento == registroDto.Documento);
+            if (cpfExistente != null)
+            {
+                return BadRequest("Este documento já esta em uso.");
             }
 
             var novoUsuario = new Usuario
@@ -152,6 +159,12 @@ namespace Decolei.net.Controllers
             if (usuarioExistente != null)
             {
                 return BadRequest("Este e-mail já está em uso.");
+            }
+
+            var cpfExistente = await _userManager.Users.FirstOrDefaultAsync(u => u.Documento == registroDto.Documento);
+            if (cpfExistente != null)
+            {
+                return BadRequest("Este documento já esta em uso.");
             }
 
             var novoUsuario = new Usuario
