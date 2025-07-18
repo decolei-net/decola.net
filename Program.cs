@@ -1,18 +1,21 @@
 // Usings necessários para o Entity Framework, Identity, Swagger e seus modelos.
 using Decolei.net.Data;
+using Decolei.net.Interfaces;
 using Decolei.net.Models;
+using Decolei.net.Repository;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
-
-// Usings adicionais para JWT
-using Microsoft.AspNetCore.Authentication; // ESSENCIAL para AddAuthentication()
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
-using Decolei.net.Repository;
 
-public class Program
+// ===================================================================
+// INÍCIO DA ALTERAÇÃO ESTRUTURAL PARA SUPORTE A TESTES
+// ===================================================================
+// Tornamos a classe Program pública e parcial.
+// Isso permite que o projeto de teste se "conecte" a ela antes da inicialização.
+public partial class Program
 {
     // O método 'Main' agora é assíncrono para permitir await
     public static async Task Main(string[] args)
@@ -27,7 +30,9 @@ public class Program
         builder.Services.AddDbContext<DecoleiDbContext>(options =>
             options.UseSqlServer(connectionString));
 
-        builder.Services.AddScoped<Decolei.net.Interfaces.IPacoteRepository, PacoteRepository>();
+        // Adiciona o repositório ao contêiner de injeção de dependência
+        builder.Services.AddScoped<IPacoteRepository, PacoteRepository>();
+
         // 2. REGISTRAR E CONFIGURAR O ASP.NET IDENTITY
         builder.Services.AddIdentity<Usuario, IdentityRole<int>>(options =>
         {
@@ -37,9 +42,8 @@ public class Program
             options.Password.RequireNonAlphanumeric = false;
             options.Password.RequiredLength = 6;
             options.SignIn.RequireConfirmedAccount = false;
-            // Configurações para UserName e Email (já que Email será o login)
-            options.User.RequireUniqueEmail = true; // Garante que o email seja único
-            options.SignIn.RequireConfirmedEmail = false; // Não exige confirmação de email para login
+            options.User.RequireUniqueEmail = true;
+            options.SignIn.RequireConfirmedEmail = false;
         })
         .AddEntityFrameworkStores<DecoleiDbContext>();
 
@@ -82,7 +86,6 @@ public class Program
         builder.Services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "Decolei.net API", Version = "v1" });
-            // Adicionado para permitir autorização JWT no Swagger UI
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Name = "Authorization",
@@ -123,7 +126,7 @@ public class Program
             {
                 await roleManager.CreateAsync(new IdentityRole<int>("ADMIN"));
             }
-            // Garante que a role "CLIENTE" existe (pode ser criada no registro tbm)
+            // Garante que a role "CLIENTE" existe
             if (!await roleManager.RoleExistsAsync("CLIENTE"))
             {
                 await roleManager.CreateAsync(new IdentityRole<int>("CLIENTE"));
@@ -134,24 +137,23 @@ public class Program
                 await roleManager.CreateAsync(new IdentityRole<int>("ATENDENTE"));
             }
 
-
             // Cria o primeiro usuário Admin se ele não existir
             var adminUser = await userManager.FindByEmailAsync("admin@decolei.net");
             if (adminUser == null)
             {
                 adminUser = new Usuario
                 {
-                    UserName = "admin@decolei.net", // UserName será o email
+                    UserName = "admin@decolei.net",
                     Email = "admin@decolei.net",
                     Documento = "00000000000",
-                    Perfil = "ADMIN", // Atribuído ao perfil customizado
+                    Perfil = "ADMIN",
                     PhoneNumber = "999999999",
-                    NomeCompleto = "Administrador Master" // Nome completo
+                    NomeCompleto = "Administrador Master"
                 };
-                var createResult = await userManager.CreateAsync(adminUser, "SenhaAdmin123!"); // Escolha uma senha segura!
+                var createResult = await userManager.CreateAsync(adminUser, "SenhaAdmin123!");
                 if (createResult.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(adminUser, "ADMIN"); // Adiciona à role do Identity
+                    await userManager.AddToRoleAsync(adminUser, "ADMIN");
                     Console.WriteLine("Usuário Admin inicial criado!");
                 }
                 else
@@ -162,34 +164,28 @@ public class Program
         }
         // --- Fim do Seeding ---
 
-
         // --- CONFIGURAÇÃO DO PIPELINE DE REQUISIÇÃO ---
 
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
-            // Esta configuração garante que a UI do Swagger funcione corretamente.
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Decolei.net API V1");
-                // Opcional: Torna a UI do Swagger a página inicial
                 c.RoutePrefix = string.Empty;
             });
         }
 
-        // app.UseHttpsRedirection(); // Mantenha comentado se estiver dando erro de porta HTTPS
-
-        // permitindo que front-end, mesmo rodando em outra porta ou domínio, consiga fazer requisições para a API.
-        app.UseCors("AllowAll"); // <<<<< CORS habilitado aqui
-
-        // A ordem destes middlewares é fundamental
+        app.UseCors("AllowAll");
         app.UseRouting();
-        app.UseAuthentication(); // Deve vir ANTES de UseAuthorization
-        app.UseAuthorization();  // Deve vir DEPOIS de UseAuthentication
-
+        app.UseAuthentication();
+        app.UseAuthorization();
 
         app.MapControllers();
 
-        await app.RunAsync(); // Use await aqui para o Main assíncrono
+        await app.RunAsync();
     }
 }
+// ===================================================================
+// FIM DA ALTERAÇÃO ESTRUTURAL
+// ===================================================================
