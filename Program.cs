@@ -4,6 +4,8 @@ using Decolei.net.Interfaces;
 using Decolei.net.Models;
 using Decolei.net.Repository;
 using Decolei.net.Repository.Decolei.net.Repository;
+using Decolei.net.Services;
+
 
 // Usings adicionais para JWT
 using Microsoft.AspNetCore.Authentication; // ESSENCIAL para AddAuthentication()

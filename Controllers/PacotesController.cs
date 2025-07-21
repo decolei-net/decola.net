@@ -34,7 +34,7 @@ namespace Decolei.net.Controllers
 
                 if (!string.IsNullOrWhiteSpace(destino))
                 {
-                    pacotes = pacotes.Where(p => p.Destino.Contains(destino, StringComparison.OrdinalIgnoreCase));
+                    pacotes = pacotes.Where(p => p.Destino!.Contains(destino, StringComparison.OrdinalIgnoreCase));
                 }
                 if (precoMin.HasValue)
                 {

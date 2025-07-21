@@ -210,7 +210,7 @@ namespace Decolei.net.Controllers
 
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var usuario = await _userManager.FindByEmailAsync(dto.Email);
+            var usuario = await _userManager.FindByEmailAsync(dto.Email!);
             if (usuario == null)
                 return NotFound("Usuário não encontrado.");
 
@@ -227,7 +227,7 @@ namespace Decolei.net.Controllers
                             <p>Email: {dto.Email}</p>
                             ";
 
-            await _emailService.EnviarEmailAsync(dto.Email, "Recuperação de Senha - Decolei.Net", corpo);
+            await _emailService.EnviarEmailAsync(dto.Email!, "Recuperação de Senha - Decolei.Net", corpo);
 
             return Ok(new { message = "Link de recuperação enviado para seu e-mail." });
         }
@@ -238,11 +238,11 @@ namespace Decolei.net.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var usuario = await _userManager.FindByEmailAsync(dto.Email);
+            var usuario = await _userManager.FindByEmailAsync(dto.Email!);
             if (usuario == null)
                 return NotFound("Usuário não encontrado.");
 
-            var resultado = await _userManager.ResetPasswordAsync(usuario, dto.Token, dto.NovaSenha);
+            var resultado = await _userManager.ResetPasswordAsync(usuario, dto.Token!, dto.NovaSenha!);
 
             if (!resultado.Succeeded)
             {
