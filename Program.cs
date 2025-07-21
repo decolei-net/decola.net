@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Decolei.net.Repository;
+using Decolei.net.Services;
 
 public class Program
 {
@@ -40,8 +41,10 @@ public class Program
             // Configurações para UserName e Email (já que Email será o login)
             options.User.RequireUniqueEmail = true; // Garante que o email seja único
             options.SignIn.RequireConfirmedEmail = false; // Não exige confirmação de email para login
+            options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultProvider;
         })
-        .AddEntityFrameworkStores<DecoleiDbContext>();
+        .AddEntityFrameworkStores<DecoleiDbContext>()
+        .AddDefaultTokenProviders(); // ESSENCIAL para reset de senha
 
         // 3. REGISTRAR SERVIÇOS DE AUTENTICAÇÃO E AUTORIZAÇÃO (CONFIGURADO PARA JWT)
         builder.Services.AddAuthentication(options =>
@@ -74,6 +77,9 @@ public class Program
                       .AllowAnyHeader();
             });
         });
+
+        // injentando EmailService
+        builder.Services.AddScoped<EmailService>();
 
         // 5. REGISTRAR CONTROLLERS E SERVIÇOS DO SWAGGER
         builder.Services.AddControllers();

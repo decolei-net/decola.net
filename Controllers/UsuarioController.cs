@@ -11,6 +11,7 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Decolei.net.Services;
 
 namespace Decolei.net.Controllers
 {
@@ -22,17 +23,20 @@ namespace Decolei.net.Controllers
         private readonly SignInManager<Usuario> _signInManager;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
         private readonly IConfiguration _configuration; // Adicionado para acessar JwtSettings
+        private readonly EmailService _emailService;
 
         public UsuarioController(
             UserManager<Usuario> userManager,
             SignInManager<Usuario> signInManager,
             RoleManager<IdentityRole<int>> roleManager,
-            IConfiguration configuration) // Injetar IConfiguration NO CONSTRUTOR
+            IConfiguration configuration, // Injetar IConfiguration NO CONSTRUTOR
+            EmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _configuration = configuration; // Atribuir
+            _emailService = emailService;
         }
 
         // --- ENDPOINT DE REGISTRO (COM LÓGICA DE PAPÉIS) ---
@@ -198,5 +202,56 @@ namespace Decolei.net.Controllers
             }
             return BadRequest(ModelState);
         }
+
+        // ENDPOINT POST - RECUPERAR SENHA   
+        [HttpPost("recuperar-senha")]
+        public async Task<IActionResult> RecuperarSenha([FromBody] RecuperarSenhaDto dto)
+        {
+
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var usuario = await _userManager.FindByEmailAsync(dto.Email);
+            if (usuario == null)
+                return NotFound("Usuário não encontrado.");
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(usuario);
+            var link = $"{_configuration["Frontend:ResetPasswordUrl"]}?token={Uri.EscapeDataString(token)}&email={dto.Email}";
+
+            var corpo = $@" <h3>Redefinição de Senha</h3>
+                            <p>Clique no link abaixo para redefinir sua senha:</p>
+                            <a href='{link}'>Redefinir Senha</a>
+                            <hr>
+                            <h3>Token de redefinição de senha</h3>
+                            <p>Se preferir, copie o token abaixo e use no Swagger:</p>
+                            <p><b>{token}</b></p>
+                            <p>Email: {dto.Email}</p>
+                            ";
+
+            await _emailService.EnviarEmailAsync(dto.Email, "Recuperação de Senha - Decolei.Net", corpo);
+
+            return Ok(new { message = "Link de recuperação enviado para seu e-mail." });
+        }
+
+        // ENDPOINT POST - REDEFINIR SENHA
+        [HttpPost("redefinir-senha")]
+        public async Task<IActionResult> RedefinirSenha([FromBody] RedefinirSenhaDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var usuario = await _userManager.FindByEmailAsync(dto.Email);
+            if (usuario == null)
+                return NotFound("Usuário não encontrado.");
+
+            var resultado = await _userManager.ResetPasswordAsync(usuario, dto.Token, dto.NovaSenha);
+
+            if (!resultado.Succeeded)
+            {
+                var erros = resultado.Errors.Select(e => e.Description);
+                return BadRequest(new { errors = erros });
+            }
+
+            return Ok(new { message = "Senha redefinida com sucesso!" });
+        }
+
     }
 }
