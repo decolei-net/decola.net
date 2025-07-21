@@ -1,4 +1,4 @@
-// Usings necessários para o Entity Framework, Identity, Swagger e seus modelos.
+// Usings necessÃ¡rios para o Entity Framework, Identity, Swagger e seus modelos.
 using Decolei.net.Data;
 using Decolei.net.Interfaces;
 using Decolei.net.Models;
@@ -14,14 +14,15 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
+
 public class Program
 {
-    // O método 'Main' agora é assíncrono para permitir await
+    // O mÃ©todo 'Main' agora Ã© assÃ­ncrono para permitir await
     public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // --- CONFIGURAÇÃO DOS SERVIÇOS ---
+        // --- CONFIGURAÃ‡ÃƒO DOS SERVIÃ‡OS ---
 
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -39,13 +40,15 @@ public class Program
             options.Password.RequireNonAlphanumeric = false;
             options.Password.RequiredLength = 6;
             options.SignIn.RequireConfirmedAccount = false;
-            // Configurações para UserName e Email (já que Email será o login)
-            options.User.RequireUniqueEmail = true; // Garante que o email seja único
-            options.SignIn.RequireConfirmedEmail = false; // Não exige confirmação de email para login
+            // ConfiguraÃ§Ãµes para UserName e Email (jÃ¡ que Email serÃ¡ o login)
+            options.User.RequireUniqueEmail = true; // Garante que o email seja Ãºnico
+            options.SignIn.RequireConfirmedEmail = false; // NÃ£o exige confirmaÃ§Ã£o de email para login
+            options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultProvider;
         })
-        .AddEntityFrameworkStores<DecoleiDbContext>();
+        .AddEntityFrameworkStores<DecoleiDbContext>()
+        .AddDefaultTokenProviders(); // ESSENCIAL para reset de senha
 
-        // 3. REGISTRAR SERVIÇOS DE AUTENTICAÇÃO E AUTORIZAÇÃO (CONFIGURADO PARA JWT)
+        // 3. REGISTRAR SERVIÃ‡OS DE AUTENTICAÃ‡ÃƒO E AUTORIZAÃ‡ÃƒO (CONFIGURADO PARA JWT)
         builder.Services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -77,14 +80,17 @@ public class Program
             });
         });
 
-        // 5. REGISTRAR CONTROLLERS E SERVIÇOS DO SWAGGER
+        // injentando EmailService
+        builder.Services.AddScoped<EmailService>();
+
+        // 5. REGISTRAR CONTROLLERS E SERVIÃ‡OS DO SWAGGER
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
 
         builder.Services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "Decolei.net API", Version = "v1" });
-            // Adicionado para permitir autorização JWT no Swagger UI
+            // Adicionado para permitir autorizaÃ§Ã£o JWT no Swagger UI
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Name = "Authorization",
@@ -110,7 +116,7 @@ public class Program
             });
         });
 
-        // --- FIM DA CONFIGURAÇÃO DE SERVIÇOS ---
+        // --- FIM DA CONFIGURAÃ‡ÃƒO DE SERVIÃ‡OS ---
         builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
 
         var app = builder.Build();
@@ -138,54 +144,54 @@ public class Program
             }
 
 
-            // Cria o primeiro usuário Admin se ele não existir
+            // Cria o primeiro usuÃ¡rio Admin se ele nÃ£o existir
             var adminUser = await userManager.FindByEmailAsync("admin@decolei.net");
             if (adminUser == null)
             {
                 adminUser = new Usuario
                 {
-                    UserName = "admin@decolei.net", // UserName será o email
+                    UserName = "admin@decolei.net", // UserName serÃ¡ o email
                     Email = "admin@decolei.net",
                     Documento = "00000000000",
-                    Perfil = "ADMIN", // Atribuído ao perfil customizado
+                    Perfil = "ADMIN", // AtribuÃ­do ao perfil customizado
                     PhoneNumber = "999999999",
                     NomeCompleto = "Administrador Master" // Nome completo
                 };
                 var createResult = await userManager.CreateAsync(adminUser, "SenhaAdmin123!"); // Escolha uma senha segura!
                 if (createResult.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(adminUser, "ADMIN"); // Adiciona à role do Identity
-                    Console.WriteLine("Usuário Admin inicial criado!");
+                    await userManager.AddToRoleAsync(adminUser, "ADMIN"); // Adiciona Ã  role do Identity
+                    Console.WriteLine("UsuÃ¡rio Admin inicial criado!");
                 }
                 else
                 {
-                    Console.WriteLine($"Erro ao criar usuário Admin: {string.Join(", ", createResult.Errors.Select(e => e.Description))}");
+                    Console.WriteLine($"Erro ao criar usuÃ¡rio Admin: {string.Join(", ", createResult.Errors.Select(e => e.Description))}");
                 }
             }
         }
         // --- Fim do Seeding ---
 
 
-        // --- CONFIGURAÇÃO DO PIPELINE DE REQUISIÇÃO ---
+        // --- CONFIGURAÃ‡ÃƒO DO PIPELINE DE REQUISIÃ‡ÃƒO ---
 
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
-            // Esta configuração garante que a UI do Swagger funcione corretamente.
+            // Esta configuraÃ§Ã£o garante que a UI do Swagger funcione corretamente.
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Decolei.net API V1");
-                // Opcional: Torna a UI do Swagger a página inicial
+                // Opcional: Torna a UI do Swagger a pÃ¡gina inicial
                 c.RoutePrefix = string.Empty;
             });
         }
 
         // app.UseHttpsRedirection(); // Mantenha comentado se estiver dando erro de porta HTTPS
 
-        // permitindo que front-end, mesmo rodando em outra porta ou domínio, consiga fazer requisições para a API.
+        // permitindo que front-end, mesmo rodando em outra porta ou domÃ­nio, consiga fazer requisiÃ§Ãµes para a API.
         app.UseCors("AllowAll"); // <<<<< CORS habilitado aqui
 
-        // A ordem destes middlewares é fundamental
+        // A ordem destes middlewares Ã© fundamental
         app.UseRouting();
         app.UseAuthentication(); // Deve vir ANTES de UseAuthorization
         app.UseAuthorization();  // Deve vir DEPOIS de UseAuthentication
@@ -193,6 +199,6 @@ public class Program
 
         app.MapControllers();
 
-        await app.RunAsync(); // Use await aqui para o Main assíncrono
+        await app.RunAsync(); // Use await aqui para o Main assÃ­ncrono
     }
 }
