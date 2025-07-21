@@ -1,16 +1,18 @@
 // Usings necessários para o Entity Framework, Identity, Swagger e seus modelos.
 using Decolei.net.Data;
+using Decolei.net.Interfaces;
 using Decolei.net.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
+using Decolei.net.Repository;
+using Decolei.net.Repository.Decolei.net.Repository;
 
 // Usings adicionais para JWT
 using Microsoft.AspNetCore.Authentication; // ESSENCIAL para AddAuthentication()
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
-using Decolei.net.Repository;
 
 public class Program
 {
@@ -109,6 +111,7 @@ public class Program
         });
 
         // --- FIM DA CONFIGURAÇÃO DE SERVIÇOS ---
+        builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
 
         var app = builder.Build();
 
