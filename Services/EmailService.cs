@@ -29,7 +29,7 @@ namespace Decolei.net.Services
                 EnableSsl = true
             };
 
-            // Criando a mensagem de email, ela ta no meu controller?
+            // Criando a mensagem de email
             var mensagem = new MailMessage
             {
                 From = new MailAddress(smtp["User"], smtp["Sender"]),
