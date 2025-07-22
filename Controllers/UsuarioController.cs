@@ -11,6 +11,7 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Decolei.net.Services;
 
 namespace Decolei.net.Controllers
 {
@@ -22,17 +23,20 @@ namespace Decolei.net.Controllers
         private readonly SignInManager<Usuario> _signInManager;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
         private readonly IConfiguration _configuration; // Adicionado para acessar JwtSettings
+        private readonly EmailService _emailService;
 
         public UsuarioController(
             UserManager<Usuario> userManager,
             SignInManager<Usuario> signInManager,
             RoleManager<IdentityRole<int>> roleManager,
-            IConfiguration configuration) // Injetar IConfiguration NO CONSTRUTOR
+            IConfiguration configuration, // Injetar IConfiguration NO CONSTRUTOR
+            EmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _configuration = configuration; // Atribuir
+            _emailService = emailService;
         }
 
         // --- ENDPOINT DE REGISTRO (COM LÓGICA DE PAPÉIS) ---
@@ -153,9 +157,13 @@ namespace Decolei.net.Controllers
         [HttpPost("registrar-admin")]
         public async Task<IActionResult> RegistrarAdmin([FromBody] RegistroUsuarioDto registroDto)
         {
+            // Verifica se o corpo da requisição está válido com base nas anotações do DTO
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            // busca o usuario pelo email informado no DTO
             var usuarioExistente = await _userManager.FindByEmailAsync(registroDto.Email!);
+
+            // Verifica se o email já está em uso
             if (usuarioExistente != null)
             {
                 return BadRequest("Este e-mail já está em uso.");
@@ -198,5 +206,65 @@ namespace Decolei.net.Controllers
             }
             return BadRequest(ModelState);
         }
+
+        // ENDPOINT POST - RECUPERAR SENHA   
+        [HttpPost("recuperar-senha")]
+        public async Task<IActionResult> RecuperarSenha([FromBody] RecuperarSenhaDto dto)
+        {
+            // Verifica se o corpo da requisição está válido com base nas anotações do DTO
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            //busca o usuário pelo email informado no DTO
+            var usuario = await _userManager.FindByEmailAsync(dto.Email);
+            if (usuario == null)
+                return NotFound("Usuário não encontrado.");
+
+            // gera token de redefinição de senha e cria o link para o front-end
+            var token = await _userManager.GeneratePasswordResetTokenAsync(usuario);
+            var link = $"{_configuration["Frontend:ResetPasswordUrl"]}?token={Uri.EscapeDataString(token)}&email={dto.Email}";
+
+            var corpo = $@" <h3>Redefinição de Senha</h3>
+                            <p>Clique no link abaixo para redefinir sua senha:</p>
+                            <a href='{link}'>Redefinir Senha</a>
+                            <hr>
+                            <h3>Token de redefinição de senha</h3>
+                            <p>Se preferir, copie o token abaixo e use no Swagger:</p>
+                            <p><b>{token}</b></p>
+                            <p>Email: {dto.Email}</p>
+                            ";
+
+            // enia o email com mensagem, token e link
+            await _emailService.EnviarEmailAsync(dto.Email, "Recuperação de Senha - Decolei.Net", corpo);
+
+            // etorna uma mensagem de sucesso
+            return Ok(new { message = "Link de recuperação enviado para seu e-mail." });
+        }
+
+        // ENDPOINT POST - REDEFINIR SENHA
+        [HttpPost("redefinir-senha")]
+        public async Task<IActionResult> RedefinirSenha([FromBody] RedefinirSenhaDto dto)
+        {
+            // Verifica se o corpo da requisição está válido com base nas anotações do DTO
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            // procura o usuário pelo email informado no DTO
+            var usuario = await _userManager.FindByEmailAsync(dto.Email);
+            if (usuario == null)
+                return NotFound("Usuário não encontrado.");
+
+            // realiza a redefinição de senha usando o token e a nova senha fornecida
+            var resultado = await _userManager.ResetPasswordAsync(usuario, dto.Token, dto.NovaSenha);
+
+            // se houver erros retorna com detalhes
+            if (!resultado.Succeeded)
+            {
+                var erros = resultado.Errors.Select(e => e.Description);
+                return BadRequest(new { errors = erros });
+            }
+
+            // mensagem de sucesso
+            return Ok(new { message = "Senha redefinida com sucesso!" });
+        }
+
     }
 }
