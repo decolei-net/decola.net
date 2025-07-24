@@ -3,14 +3,14 @@ using Decolei.net.Data;
 using Decolei.net.Interfaces;
 using Decolei.net.Models;
 using Decolei.net.Repository;
-using Decolei.net.Repository.Decolei.net.Repository;
-using Decolei.net.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Decolei.net.Repository.Decolei.net.Repository;
+using Decolei.net.Services;
 
 public class Program
 {
@@ -27,6 +27,8 @@ public class Program
         builder.Services.AddScoped<IPacoteRepository, PacoteRepository>();
         builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
         builder.Services.AddScoped<EmailService>();
+
+        // CORREÇÃO: Adicionado .AddDefaultTokenProviders() de volta
         builder.Services.AddIdentity<Usuario, IdentityRole<int>>(options =>
         {
             options.Password.RequireDigit = false;
@@ -36,7 +38,8 @@ public class Program
             options.Password.RequiredLength = 6;
             options.User.RequireUniqueEmail = true;
         })
-        .AddEntityFrameworkStores<DecoleiDbContext>();
+        .AddEntityFrameworkStores<DecoleiDbContext>()
+        .AddDefaultTokenProviders(); // <-- Recuperação de senha *ESSENCIAL*
 
         builder.Services.AddAuthentication(options =>
         {
@@ -96,13 +99,14 @@ public class Program
 
         var app = builder.Build();
 
-        // --- SEEDING INICIAL DO BANCO DE DADOS
+        // --- SEEDING INICIAL DO BANCO DE DADOS (FORMA CORRETA) ---
+        // É essencial criar um escopo para resolver serviços com escopo como o DbContext.
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
             try
             {
-                // Chama o método de seeding
+                // Chama o método de seeding usando o novo nome da classe
                 await SeedData.SeedAllAsync(services);
             }
             catch (Exception ex)
