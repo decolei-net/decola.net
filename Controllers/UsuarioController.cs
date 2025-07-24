@@ -266,5 +266,14 @@ namespace Decolei.net.Controllers
             return Ok(new { message = "Senha redefinida com sucesso!" });
         }
 
+
+        // ENDPOINT POST - LOGOUT
+        [HttpPost("logout")]
+        [Authorize] // Garante que apenas usuários logados possam chamar este endpoint
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return Ok(new { message = "Logout realizado com sucesso!" });
+        }
     }
 }
