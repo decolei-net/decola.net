@@ -9,6 +9,6 @@ namespace Decolei.net.DTOs
         public int PacoteViagemId { get; set; }
 
         // A lista de viajantes é opcional
-        public List<ViajanteDto> Viajantes { get; set; } = new List<ViajanteDto>();
+        public ICollection<ViajanteDto> Viajantes { get; set; } = new List<ViajanteDto>();
     }
 }

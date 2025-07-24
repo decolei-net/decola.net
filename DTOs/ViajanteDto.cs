@@ -6,10 +6,10 @@ namespace Decolei.net.DTOs
     {
         [Required(ErrorMessage = "O nome do viajante é obrigatório.")]
         [StringLength(100)]
-        public string Nome { get; set; }
+        public string? Nome { get; set; }
 
         [Required(ErrorMessage = "O documento do viajante é obrigatório.")]
         [StringLength(50)]
-        public string Documento { get; set; }
+        public string? Documento { get; set; }
     }
 }
