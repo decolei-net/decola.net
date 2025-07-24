@@ -223,15 +223,32 @@ namespace Decolei.net.Controllers
             var token = await _userManager.GeneratePasswordResetTokenAsync(usuario);
             var link = $"{_configuration["Frontend:ResetPasswordUrl"]}?token={Uri.EscapeDataString(token)}&email={dto.Email}";
 
-            var corpo = $@" <h3>Redefinição de Senha</h3>
-                            <p>Clique no link abaixo para redefinir sua senha:</p>
-                            <a href='{link}'>Redefinir Senha</a>
-                            <hr>
-                            <h3>Token de redefinição de senha</h3>
-                            <p>Se preferir, copie o token abaixo e use no Swagger:</p>
-                            <p><b>{token}</b></p>
-                            <p>Email: {dto.Email}</p>
-                            ";
+            var corpo = $@"
+                        <html>
+                          <body style='font-family: Arial, sans-serif; color: #333;'>
+                            <h2 style='color: #007bff;'>🔒 Redefinição de Senha</h2>
+                            <p>Olá,</p>
+                            <p>Recebemos uma solicitação para redefinir a senha da sua conta no <strong>Decolei.NET</strong>.</p>
+                            <p>Clique no botão abaixo para criar uma nova senha:</p>
+
+                            <p style='margin: 20px 0;'>
+                              <a href='{link}' style='background-color: #007bff; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px;'>Redefinir Senha</a>
+                            </p>
+
+                            <hr style='margin: 30px 0;' />
+
+                            <h3>Token de redefinição</h3>
+                            <p>Se preferir, copie o token abaixo e use diretamente no Swagger ou em outro cliente:</p>
+                            <p style='font-size: 18px; font-weight: bold; color: #555;'>{token}</p>
+
+                            <p><strong>Email associado:</strong> {dto.Email}</p>
+
+                            <br />
+                            <p style='font-size: 14px; color: #999;'>Se você não solicitou essa redefinição, pode ignorar este e-mail com segurança.</p>
+
+                            <p style='margin-top: 40px;'>Atenciosamente,<br /><em>Equipe Decolei.NET</em></p>
+                          </body>
+                        </html>";
 
             // enia o email com mensagem, token e link
             await _emailService.EnviarEmailAsync(dto.Email, "Recuperação de Senha - Decolei.Net", corpo);
@@ -266,14 +283,5 @@ namespace Decolei.net.Controllers
             return Ok(new { message = "Senha redefinida com sucesso!" });
         }
 
-
-        // ENDPOINT POST - LOGOUT
-        [HttpPost("logout")]
-        [Authorize] // Garante que apenas usuários logados possam chamar este endpoint
-        public async Task<IActionResult> Logout()
-        {
-            await _signInManager.SignOutAsync();
-            return Ok(new { message = "Logout realizado com sucesso!" });
-        }
     }
 }

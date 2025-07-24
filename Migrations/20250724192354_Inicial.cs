@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Decolei.net.Migrations
 {
     /// <inheritdoc />
-    public partial class AdicionaRelacaoUsuarioPacote : Migration
+    public partial class Inicial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -186,7 +186,8 @@ namespace Decolei.net.Migrations
                     Reserva_Data = table.Column<DateTime>(type: "date", nullable: true),
                     Reserva_ValorTotal = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
                     Reserva_Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    Reserva_Numero = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true)
+                    Reserva_Numero = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    Reserva_StatusPagamento = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {

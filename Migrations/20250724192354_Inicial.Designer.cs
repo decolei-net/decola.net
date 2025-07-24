@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Decolei.net.Migrations
 {
     [DbContext(typeof(DecoleiDbContext))]
-    [Migration("20250721194857_NovaMigration")]
-    partial class NovaMigration
+    [Migration("20250724192354_Inicial")]
+    partial class Inicial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
