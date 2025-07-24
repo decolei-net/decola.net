@@ -282,9 +282,7 @@ namespace Decolei.net.Controllers
             // mensagem de sucesso
             return Ok(new { message = "Senha redefinida com sucesso!" });
         }
-
-<<<<<<< HEAD
-=======
+         
 
         // ENDPOINT POST - LOGOUT
         [HttpPost("logout")]
@@ -354,7 +352,6 @@ namespace Decolei.net.Controllers
             };
 
             return Ok(usuarioDto);
-        }
->>>>>>> 33c9cf40bdcb510497244f8beea25a63e397e508
+        } 
     }
 }

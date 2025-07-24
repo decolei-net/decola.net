@@ -12,13 +12,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Decolei.net.Migrations
 {
     [DbContext(typeof(DecoleiDbContext))]
-<<<<<<<< HEAD:Migrations/20250724192354_Inicial.Designer.cs
-    [Migration("20250724192354_Inicial")]
-    partial class Inicial
-========
     [Migration("20250724184639_CorrigeStatusPagamentoDuplicado")]
     partial class CorrigeStatusPagamentoDuplicado
->>>>>>>> 33c9cf40bdcb510497244f8beea25a63e397e508:Migrations/20250724184639_CorrigeStatusPagamentoDuplicado.Designer.cs
+
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

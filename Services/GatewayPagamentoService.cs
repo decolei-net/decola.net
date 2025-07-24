@@ -5,7 +5,7 @@ using Decolei.net.Enums; // importando o enum MetodoPagamento
 namespace Decolei.net.Services
 {
     // Classe que simula um gateway de pagamento (como Mercado Pago, PagSeguro, etc...)
-    public class GatewayPagamento
+    public class GatewayPagamentoService
     {
         // Nome completo do cliente que está pagando
         public string NomeCompleto { get; set; }
@@ -25,7 +25,7 @@ namespace Decolei.net.Services
         public string Status { get; private set; }
 
         // Construtor da classe → sempre que criamos um GatewayPagamento, já gera um ID de transação automático
-        public GatewayPagamento()
+        public GatewayPagamentoService()
         {
             // cria um ID de transação único usando Guid; guid é um identificador global único
             IdTransacao = Guid.NewGuid().ToString();

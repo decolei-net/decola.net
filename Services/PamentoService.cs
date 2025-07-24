@@ -23,7 +23,7 @@ namespace Decolei.net.Services
         public async Task<string> RealizarPagamentoAsync(PagamentoEntradaDTO dto)
         {
             // 1. Simula o gateway de pagamento com os dados recebidos
-            var gateway = new GatewayPagamento
+            var gateway = new GatewayPagamentoService
             {
                 NomeCompleto = dto.NomeCompleto,
                 Cpf = dto.Cpf,
