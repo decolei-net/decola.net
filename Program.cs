@@ -4,6 +4,7 @@ using Decolei.net.Interfaces;
 using Decolei.net.Models;
 using Decolei.net.Repository;
 using Decolei.net.Repository.Decolei.net.Repository;
+using Decolei.net.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,7 @@ public class Program
 
         builder.Services.AddScoped<IPacoteRepository, PacoteRepository>();
         builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
-
+        builder.Services.AddScoped<EmailService>();
         builder.Services.AddIdentity<Usuario, IdentityRole<int>>(options =>
         {
             options.Password.RequireDigit = false;
