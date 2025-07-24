@@ -1,4 +1,4 @@
-// Usings necess·rios
+// Usings necess√°rios
 using Decolei.net.Data;
 using Decolei.net.Interfaces;
 using Decolei.net.Models;
@@ -18,7 +18,7 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-        // --- CONFIGURA«√O DOS SERVI«OS ---
+        // --- CONFIGURA√á√ÉO DOS SERVI√áOS ---
 
         builder.Services.AddDbContext<DecoleiDbContext>(options =>
             options.UseSqlServer(connectionString));
@@ -101,7 +101,7 @@ public class Program
             var services = scope.ServiceProvider;
             try
             {
-                // Chama o mÈtodo de seeding
+                // Chama o m√©todo de seeding
                 await SeedData.SeedAllAsync(services);
             }
             catch (Exception ex)
@@ -112,7 +112,7 @@ public class Program
         }
         // --- FIM DO SEEDING ---
 
-        // --- CONFIGURA«√O DO PIPELINE DE REQUISI«√O ---
+        // --- CONFIGURA√á√ÉO DO PIPELINE DE REQUISI√á√ÉO ---
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
