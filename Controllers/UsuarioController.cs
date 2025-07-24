@@ -275,5 +275,66 @@ namespace Decolei.net.Controllers
             await _signInManager.SignOutAsync();
             return Ok(new { message = "Logout realizado com sucesso!" });
         }
+
+        // --- ENDPOINT GET PARA LISTAR TODOS OS USUÁRIOS (APENAS ADMINS) ---
+        [HttpGet]
+        [Authorize(Roles = "ADMIN")] // Proteção máxima!
+        public async Task<IActionResult> ListarUsuarios()
+        {
+            // Pega todos os usuários do banco de dados
+            var usuarios = await _userManager.Users.ToListAsync();
+
+            var usuariosDto = new List<UsuarioDto>();
+
+            // Para cada usuário, busca seu papel (role) e o mapeia para o DTO
+            foreach (var usuario in usuarios)
+            {
+                var roles = await _userManager.GetRolesAsync(usuario);
+
+                usuariosDto.Add(new UsuarioDto
+                {
+                    Id = usuario.Id,
+                    NomeCompleto = usuario.NomeCompleto,
+                    Email = usuario.Email,
+                    Telefone = usuario.PhoneNumber,
+                    Documento = usuario.Documento,
+                    // Pega o primeiro papel da lista (geralmente só haverá um)
+                    Perfil = roles.FirstOrDefault() ?? "Sem Perfil"
+                });
+            }
+
+            return Ok(usuariosDto);
+        }
+
+
+        // --- ENDPOINT GET PARA OBTER UM USUÁRIO PELO ID (APENAS ADMINS) ---
+        [HttpGet("{id:int}")]
+        [Authorize(Roles = "ADMIN,ATENDENTE")] // Proteção máxima!
+        public async Task<IActionResult> ObterUsuarioPorId(int id)
+        {
+            // Busca o usuário pelo ID. Note que FindByIdAsync espera uma string.
+            var usuario = await _userManager.FindByIdAsync(id.ToString());
+
+            if (usuario == null)
+            {
+                return NotFound(new { message = $"Usuário com ID {id} não encontrado." });
+            }
+
+            // Busca os papéis (roles) do usuário encontrado
+            var roles = await _userManager.GetRolesAsync(usuario);
+
+            // Mapeia o usuário para o DTO de resposta
+            var usuarioDto = new UsuarioDto
+            {
+                Id = usuario.Id,
+                NomeCompleto = usuario.NomeCompleto,
+                Email = usuario.Email,
+                Telefone = usuario.PhoneNumber,
+                Documento = usuario.Documento,
+                Perfil = roles.FirstOrDefault() ?? "Sem Perfil"
+            };
+
+            return Ok(usuarioDto);
+        }
     }
 }
