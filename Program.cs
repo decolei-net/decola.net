@@ -158,7 +158,8 @@ public class Program
                     Documento = "00000000000",
                     Perfil = "ADMIN", // Atribuído ao perfil customizado
                     PhoneNumber = "999999999",
-                    NomeCompleto = "Administrador Master" // Nome completo
+                    NomeCompleto = "Administrador Master", // Nome completo
+                    EmailConfirmed = true
                 };
                 var createResult = await userManager.CreateAsync(adminUser, "SenhaAdmin123!"); // Escolha uma senha segura!
                 if (createResult.Succeeded)
