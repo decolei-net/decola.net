@@ -19,27 +19,48 @@ namespace Decolei.net.Controllers
         }
 
         [HttpPost]
+
         public async Task<IActionResult> AvaliarPacote([FromBody] AvaliacaoRequest request)
+
         {
+
             if (request.Nota < 1 || request.Nota > 5)
+
                 return BadRequest("Nota deve estar entre 1 e 5.");
 
             var pacote = await _context.PacotesViagem
+
                 .FirstOrDefaultAsync(p => p.Id == request.PacoteViagem_Id);
 
             if (pacote == null)
+
                 return NotFound("Pacote de viagem não encontrado.");
 
             if (DateTime.Now < pacote.DataFim)
+
                 return BadRequest("Você só pode avaliar esse pacote após o término da viagem.");
 
             var avaliacaoExistente = await _context.Avaliacoes
+
                 .AnyAsync(a => a.Usuario_Id == request.Usuario_Id && a.PacoteViagem_Id == request.PacoteViagem_Id);
 
             if (avaliacaoExistente)
+
                 return BadRequest("Você já avaliou este pacote anteriormente.");
 
+            var reservaValida = await _context.Reservas
+
+                .AnyAsync(r =>
+                    r.Usuario_Id == request.Usuario_Id &&
+                    r.PacoteViagem_Id == request.PacoteViagem_Id &&
+                    r.Status.ToLower() == "confirmado");
+
+            if (!reservaValida)
+
+                return BadRequest("Você só pode avaliar pacotes que você reservou e estão confirmados.");
+
             var avaliacao = new Avaliacao
+
             {
                 Usuario_Id = request.Usuario_Id,
                 PacoteViagem_Id = request.PacoteViagem_Id,
@@ -51,9 +72,11 @@ namespace Decolei.net.Controllers
 
             _context.Avaliacoes.Add(avaliacao);
             await _context.SaveChangesAsync();
-
             return Ok(new { message = "Avaliação registrada com sucesso." });
+
         }
+
+
 
         [HttpGet("pacote/{id}")]
         public async Task<IActionResult> AvaliacoesAprovadasPorPacote(int id)

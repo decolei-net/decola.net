@@ -4,12 +4,16 @@ using Decolei.net.Interfaces;
 using Decolei.net.Models;
 using Decolei.net.Repository;
 using Decolei.net.Repository.Decolei.net.Repository;
+using Decolei.net.Services;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 public class Program
 {
@@ -25,6 +29,7 @@ public class Program
 
         builder.Services.AddScoped<IPacoteRepository, PacoteRepository>();
         builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
+        builder.Services.AddScoped<EmailService>();
 
         // CORREÇÃO: Adicionado .AddDefaultTokenProviders() de volta
         builder.Services.AddIdentity<Usuario, IdentityRole<int>>(options =>
@@ -69,7 +74,13 @@ public class Program
             });
         });
 
-        builder.Services.AddControllers();
+        builder.Services.AddScoped<PagamentoService>();
+        builder.Services.AddScoped<EmailService>();
+        builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false));
+            });
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
         {

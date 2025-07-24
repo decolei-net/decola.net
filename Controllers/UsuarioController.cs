@@ -223,15 +223,32 @@ namespace Decolei.net.Controllers
             var token = await _userManager.GeneratePasswordResetTokenAsync(usuario);
             var link = $"{_configuration["Frontend:ResetPasswordUrl"]}?token={Uri.EscapeDataString(token)}&email={dto.Email}";
 
-            var corpo = $@" <h3>Redefinição de Senha</h3>
-                            <p>Clique no link abaixo para redefinir sua senha:</p>
-                            <a href='{link}'>Redefinir Senha</a>
-                            <hr>
-                            <h3>Token de redefinição de senha</h3>
-                            <p>Se preferir, copie o token abaixo e use no Swagger:</p>
-                            <p><b>{token}</b></p>
-                            <p>Email: {dto.Email}</p>
-                            ";
+            var corpo = $@"
+                        <html>
+                          <body style='font-family: Arial, sans-serif; color: #333;'>
+                            <h2 style='color: #007bff;'>🔒 Redefinição de Senha</h2>
+                            <p>Olá,</p>
+                            <p>Recebemos uma solicitação para redefinir a senha da sua conta no <strong>Decolei.NET</strong>.</p>
+                            <p>Clique no botão abaixo para criar uma nova senha:</p>
+
+                            <p style='margin: 20px 0;'>
+                              <a href='{link}' style='background-color: #007bff; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px;'>Redefinir Senha</a>
+                            </p>
+
+                            <hr style='margin: 30px 0;' />
+
+                            <h3>Token de redefinição</h3>
+                            <p>Se preferir, copie o token abaixo e use diretamente no Swagger ou em outro cliente:</p>
+                            <p style='font-size: 18px; font-weight: bold; color: #555;'>{token}</p>
+
+                            <p><strong>Email associado:</strong> {dto.Email}</p>
+
+                            <br />
+                            <p style='font-size: 14px; color: #999;'>Se você não solicitou essa redefinição, pode ignorar este e-mail com segurança.</p>
+
+                            <p style='margin-top: 40px;'>Atenciosamente,<br /><em>Equipe Decolei.NET</em></p>
+                          </body>
+                        </html>";
 
             // enia o email com mensagem, token e link
             await _emailService.EnviarEmailAsync(dto.Email, "Recuperação de Senha - Decolei.Net", corpo);
@@ -265,7 +282,7 @@ namespace Decolei.net.Controllers
             // mensagem de sucesso
             return Ok(new { message = "Senha redefinida com sucesso!" });
         }
-
+         
 
         // ENDPOINT POST - LOGOUT
         [HttpPost("logout")]
@@ -275,5 +292,66 @@ namespace Decolei.net.Controllers
             await _signInManager.SignOutAsync();
             return Ok(new { message = "Logout realizado com sucesso!" });
         }
+
+        // --- ENDPOINT GET PARA LISTAR TODOS OS USUÁRIOS (APENAS ADMINS) ---
+        [HttpGet]
+        [Authorize(Roles = "ADMIN")] // Proteção máxima!
+        public async Task<IActionResult> ListarUsuarios()
+        {
+            // Pega todos os usuários do banco de dados
+            var usuarios = await _userManager.Users.ToListAsync();
+
+            var usuariosDto = new List<UsuarioDto>();
+
+            // Para cada usuário, busca seu papel (role) e o mapeia para o DTO
+            foreach (var usuario in usuarios)
+            {
+                var roles = await _userManager.GetRolesAsync(usuario);
+
+                usuariosDto.Add(new UsuarioDto
+                {
+                    Id = usuario.Id,
+                    NomeCompleto = usuario.NomeCompleto,
+                    Email = usuario.Email,
+                    Telefone = usuario.PhoneNumber,
+                    Documento = usuario.Documento,
+                    // Pega o primeiro papel da lista (geralmente só haverá um)
+                    Perfil = roles.FirstOrDefault() ?? "Sem Perfil"
+                });
+            }
+
+            return Ok(usuariosDto);
+        }
+
+
+        // --- ENDPOINT GET PARA OBTER UM USUÁRIO PELO ID (APENAS ADMINS) ---
+        [HttpGet("{id:int}")]
+        [Authorize(Roles = "ADMIN,ATENDENTE")] // Proteção máxima!
+        public async Task<IActionResult> ObterUsuarioPorId(int id)
+        {
+            // Busca o usuário pelo ID. Note que FindByIdAsync espera uma string.
+            var usuario = await _userManager.FindByIdAsync(id.ToString());
+
+            if (usuario == null)
+            {
+                return NotFound(new { message = $"Usuário com ID {id} não encontrado." });
+            }
+
+            // Busca os papéis (roles) do usuário encontrado
+            var roles = await _userManager.GetRolesAsync(usuario);
+
+            // Mapeia o usuário para o DTO de resposta
+            var usuarioDto = new UsuarioDto
+            {
+                Id = usuario.Id,
+                NomeCompleto = usuario.NomeCompleto,
+                Email = usuario.Email,
+                Telefone = usuario.PhoneNumber,
+                Documento = usuario.Documento,
+                Perfil = roles.FirstOrDefault() ?? "Sem Perfil"
+            };
+
+            return Ok(usuarioDto);
+        } 
     }
 }
