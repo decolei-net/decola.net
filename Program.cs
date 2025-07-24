@@ -86,11 +86,7 @@ public class Program
         builder.Services.AddScoped<EmailService>();
 
         // 5. REGISTRAR CONTROLLERS E SERVIÇOS DO SWAGGER
-        builder.Services.AddControllers()
-            .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-            });
+        builder.Services.AddControllers();
         
         builder.Services.AddEndpointsApiExplorer();
 
