@@ -12,9 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Decolei.net.Migrations
 {
     [DbContext(typeof(DecoleiDbContext))]
-    [Migration("20250724184639_CorrigeStatusPagamentoDuplicado")]
-    partial class CorrigeStatusPagamentoDuplicado
-
+    [Migration("20250725223551_CriacaoInicialCompleta")]
+    partial class CriacaoInicialCompleta
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -111,7 +110,7 @@ namespace Decolei.net.Migrations
                         .HasColumnType("int")
                         .HasColumnName("Usuario_Id");
 
-                    b.Property<decimal?>("Valor")
+                    b.Property<decimal>("Valor")
                         .HasColumnType("decimal(10, 2)")
                         .HasColumnName("PacoteViagem_Valor");
 

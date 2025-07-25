@@ -125,12 +125,16 @@ namespace Decolei.net.Controllers
                     return NotFound(new { erro = $"Pacote de viagem com ID {criarReservaDto.PacoteViagemId} não encontrado." });
                 }
 
+                // Calcula o número total de pessoas da reserva, considera 1 como o usuário logado
+                int numeroTotalDePessoas = 1 + criarReservaDto.Viajantes.Count;
+                decimal valorCalculado = pacote.Valor * numeroTotalDePessoas;
+
                 var reserva = new Reserva
                 {
                     Usuario_Id = idUsuarioLogado,
                     PacoteViagem_Id = criarReservaDto.PacoteViagemId,
                     Data = DateTime.UtcNow,
-                    ValorTotal = pacote.Valor,
+                    ValorTotal = valorCalculado,
                     Status = "PENDENTE",
                     Numero = Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper()
                 };

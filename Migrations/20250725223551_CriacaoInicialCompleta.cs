@@ -5,7 +5,7 @@
 namespace Decolei.net.Migrations
 {
     /// <inheritdoc />
-    public partial class CorrigeStatusPagamentoDuplicado : Migration
+    public partial class CriacaoInicialCompleta : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
