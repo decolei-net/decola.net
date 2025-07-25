@@ -4,6 +4,8 @@ namespace Decolei.net.DTOs
 {
     public class PagamentoDto
     {
+        public int Id { get; set; }
+
         [Required]
         public int Reserva_Id { get; set; }
 

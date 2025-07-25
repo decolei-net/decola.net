@@ -54,8 +54,8 @@ namespace Decolei.net.Controllers
 
             try
             {
-                string status = await _pagamentoService.RealizarPagamentoAsync(dto);
-                return Ok(new { mensagem = "Pagamento realizado com sucesso.", status });
+                var pagamento = await _pagamentoService.RealizarPagamentoAsync(dto);
+                return Ok(pagamento);
             }
             catch (ArgumentException ex)
             {

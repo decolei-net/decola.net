@@ -20,7 +20,7 @@ namespace Decolei.net.Services
         }
 
         // Método principal para processar o pagamento
-        public async Task<string> RealizarPagamentoAsync(PagamentoEntradaDTO dto)
+        public async Task<PagamentoDto> RealizarPagamentoAsync(PagamentoEntradaDTO dto)
         {
             // 1. Simula o gateway de pagamento com os dados recebidos
             var gateway = new GatewayPagamentoService
@@ -134,7 +134,15 @@ namespace Decolei.net.Services
             }
 
             // 7. Retorna o status final
-            return gateway.Status;
+            return new PagamentoDto
+            {
+                Id = pagamento.Id,
+                Reserva_Id = pagamento.Reserva_Id,
+                Forma = pagamento.Forma,
+                Status = pagamento.Status,
+                ComprovanteURL = pagamento.ComprovanteURL,
+                Data = (DateTime)pagamento.Data
+            };
         }
 
         // Converte o enum para o valor esperado pelo banco de dados
