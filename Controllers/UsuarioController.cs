@@ -3,15 +3,13 @@ using Decolei.net.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration; // Importar para acessar configurações
-
-// Usings para JWT
-using System.IdentityModel.Tokens.Jwt;
+using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Decolei.net.Services;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace Decolei.net.Controllers
 {
@@ -22,208 +20,200 @@ namespace Decolei.net.Controllers
         private readonly UserManager<Usuario> _userManager;
         private readonly SignInManager<Usuario> _signInManager;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
-        private readonly IConfiguration _configuration; // Adicionado para acessar JwtSettings
+        private readonly IConfiguration _configuration;
         private readonly EmailService _emailService;
+        private readonly ILogger<UsuarioController> _logger; // <<< ADICIONADO PARA LOGGING
 
         public UsuarioController(
-            UserManager<Usuario> userManager,
-            SignInManager<Usuario> signInManager,
-            RoleManager<IdentityRole<int>> roleManager,
-            IConfiguration configuration, // Injetar IConfiguration NO CONSTRUTOR
-            EmailService emailService)
+            UserManager<Usuario> userManager, SignInManager<Usuario> signInManager, RoleManager<IdentityRole<int>> roleManager,
+            IConfiguration configuration, EmailService emailService, ILogger<UsuarioController> logger) // <<< LOGGER INJETADO
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
-            _configuration = configuration; // Atribuir
+            _configuration = configuration;
             _emailService = emailService;
+            _logger = logger;
         }
 
-        // --- ENDPOINT DE REGISTRO (COM LÓGICA DE PAPÉIS) ---
         [HttpPost("registrar")]
         public async Task<IActionResult> Registrar([FromBody] RegistroUsuarioDto registroDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var usuarioExistente = await _userManager.FindByEmailAsync(registroDto.Email!);
-            if (usuarioExistente != null)
+            try
             {
-                return BadRequest("Este e-mail já está em uso.");
-            }
-
-            var cpfExistente = await _userManager.Users.FirstOrDefaultAsync(u => u.Documento == registroDto.Documento);
-            if (cpfExistente != null)
-            {
-                return BadRequest("Este documento já esta em uso.");
-            }
-
-            var novoUsuario = new Usuario
-            {
-                UserName = registroDto.Email, // UserName do Identity será o email
-                Email = registroDto.Email,
-                Documento = registroDto.Documento,
-                PhoneNumber = registroDto.Telefone,
-                Perfil = "CLIENTE",
-                NomeCompleto = registroDto.Nome // Nome completo com espaços
-            };
-
-            var resultado = await _userManager.CreateAsync(novoUsuario, registroDto.Senha!);
-
-            if (resultado.Succeeded)
-            {
-                // Garante que o papel "CLIENTE" existe no banco. Se não, ele o cria.
-                if (!await _roleManager.RoleExistsAsync("CLIENTE"))
+                var usuarioExistente = await _userManager.FindByEmailAsync(registroDto.Email!);
+                if (usuarioExistente != null)
                 {
-                    await _roleManager.CreateAsync(new IdentityRole<int>("CLIENTE"));
+                    return BadRequest(new { erro = "Este e-mail já está em uso." });
                 }
-                // Adiciona o novo usuário ao papel "CLIENTE".
-                await _userManager.AddToRoleAsync(novoUsuario, "CLIENTE");
 
-                // Para APIs com JWT, não fazemos SignInAsync no registro
-                // await _signInManager.SignInAsync(novoUsuario, isPersistent: false);
-                return Ok(new { Message = "Usuário cliente registrado com sucesso!" });
+                var cpfExistente = await _userManager.Users.FirstOrDefaultAsync(u => u.Documento == registroDto.Documento);
+                if (cpfExistente != null)
+                {
+                    return BadRequest(new { erro = "Este documento já está em uso." });
+                }
+
+                var novoUsuario = new Usuario
+                {
+                    UserName = registroDto.Email,
+                    Email = registroDto.Email,
+                    Documento = registroDto.Documento,
+                    PhoneNumber = registroDto.Telefone,
+                    Perfil = "CLIENTE",
+                    NomeCompleto = registroDto.Nome
+                };
+
+                var resultado = await _userManager.CreateAsync(novoUsuario, registroDto.Senha!);
+
+                if (resultado.Succeeded)
+                {
+                    if (!await _roleManager.RoleExistsAsync("CLIENTE"))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole<int>("CLIENTE"));
+                    }
+                    await _userManager.AddToRoleAsync(novoUsuario, "CLIENTE");
+
+                    return Ok(new { mensagem = "Usuário cliente registrado com sucesso!" });
+                }
+
+                var erros = resultado.Errors.ToDictionary(e => e.Code, e => e.Description);
+                return BadRequest(new { erro = "Falha ao registrar usuário.", detalhes = erros });
             }
-
-            foreach (var erro in resultado.Errors)
+            catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, erro.Description);
+                _logger.LogError(ex, "Ocorreu um erro inesperado durante o registro do usuário {Email}.", registroDto.Email);
+                return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
             }
-            return BadRequest(ModelState);
         }
 
-        // --- ENDPOINT DE LOGIN (LÓGICA CORRIGIDA E GERANDO JWT) ---
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginUsuarioDto loginDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            // 1. BUSCAR O USUÁRIO PELO E-MAIL
-            var usuario = await _userManager.FindByEmailAsync(loginDto.Email!);
-
-            if (usuario == null)
+            try
             {
-                return Unauthorized("Email ou senha inválidos.");
-            }
-
-            // 2. VERIFICAR A SENHA
-            var resultado = await _signInManager.CheckPasswordSignInAsync(usuario, loginDto.Senha!, lockoutOnFailure: true);
-
-            if (resultado.Succeeded)
-            {
-                // --- GERAÇÃO DO JWT ---
-                var claims = new List<Claim>
+                var usuario = await _userManager.FindByEmailAsync(loginDto.Email!);
+                if (usuario == null)
                 {
-                    new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
-                    new Claim(ClaimTypes.Name, usuario.UserName!), // Usando UserName (que é o email)
-                    new Claim(ClaimTypes.Email, usuario.Email!),
-                    new Claim("NomeCompleto", usuario.NomeCompleto!) // Adicione o nome completo como uma claim customizada
-                };
-
-                // Adicionar as roles do usuário como claims
-                var userRoles = await _userManager.GetRolesAsync(usuario);
-                foreach (var role in userRoles)
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, role));
+                    return Unauthorized(new { erro = "Email ou senha inválidos." });
                 }
 
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]!));
-                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-                var expires = DateTime.Now.AddDays(7); // Token válido por 7 dias (ajuste conforme necessidade)
+                var resultado = await _signInManager.CheckPasswordSignInAsync(usuario, loginDto.Senha!, lockoutOnFailure: true);
 
-                var token = new JwtSecurityToken(
-                    issuer: _configuration["JwtSettings:Issuer"],
-                    audience: _configuration["JwtSettings:Audience"],
-                    claims: claims,
-                    expires: expires,
-                    signingCredentials: creds
-                );
+                if (resultado.Succeeded)
+                {
+                    var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+                        new Claim(ClaimTypes.Name, usuario.UserName!),
+                        new Claim(ClaimTypes.Email, usuario.Email!),
+                        new Claim("NomeCompleto", usuario.NomeCompleto!)
+                    };
 
-                var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                    var userRoles = await _userManager.GetRolesAsync(usuario);
+                    foreach (var role in userRoles)
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, role));
+                    }
 
-                return Ok(new { Token = tokenString, Message = "Login bem-sucedido!" });
+                    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]!));
+                    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                    var expires = DateTime.Now.AddDays(7);
+
+                    var token = new JwtSecurityToken(
+                        issuer: _configuration["JwtSettings:Issuer"],
+                        audience: _configuration["JwtSettings:Audience"],
+                        claims: claims, expires: expires, signingCredentials: creds
+                    );
+
+                    var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+                    return Ok(new { token = tokenString, mensagem = "Login bem-sucedido!" });
+                }
+
+                if (resultado.IsLockedOut)
+                {
+                    return Unauthorized(new { erro = "Esta conta está bloqueada. Tente novamente mais tarde." });
+                }
+
+                return Unauthorized(new { erro = "Email ou senha inválidos." });
             }
-
-            if (resultado.IsLockedOut)
+            catch (Exception ex)
             {
-                return Unauthorized("Esta conta está bloqueada. Tente novamente mais tarde.");
+                _logger.LogError(ex, "Ocorreu um erro inesperado durante a tentativa de login do usuário {Email}.", loginDto.Email);
+                return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
             }
-
-            return Unauthorized("Email ou senha inválidos.");
         }
 
-        // --- NOVO ENDPOINT PARA REGISTRAR ADMINISTRADORES ---
-        // Apenas usuários com a role "ADMIN" podem acessar este endpoint
-        [Authorize(Roles = "ADMIN")] // <--- AGORA ESTÁ EM MAIÚSCULAS PARA CONDIZER COM A ROLE
+        [Authorize(Roles = "ADMIN")]
         [HttpPost("registrar-admin")]
         public async Task<IActionResult> RegistrarAdmin([FromBody] RegistroUsuarioDto registroDto)
         {
-            // Verifica se o corpo da requisição está válido com base nas anotações do DTO
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            // busca o usuario pelo email informado no DTO
-            var usuarioExistente = await _userManager.FindByEmailAsync(registroDto.Email!);
-
-            // Verifica se o email já está em uso
-            if (usuarioExistente != null)
+            try
             {
-                return BadRequest("Este e-mail já está em uso.");
-            }
-
-            var cpfExistente = await _userManager.Users.FirstOrDefaultAsync(u => u.Documento == registroDto.Documento);
-            if (cpfExistente != null)
-            {
-                return BadRequest("Este documento já esta em uso.");
-            }
-
-            var novoUsuario = new Usuario
-            {
-                UserName = registroDto.Email, // UserName do Identity será o email
-                Email = registroDto.Email,
-                Documento = registroDto.Documento,
-                PhoneNumber = registroDto.Telefone,
-                Perfil = "ADMIN", // Definindo o perfil como ADMIN
-                NomeCompleto = registroDto.Nome // Nome completo com espaços
-            };
-
-            var resultado = await _userManager.CreateAsync(novoUsuario, registroDto.Senha!);
-
-            if (resultado.Succeeded)
-            {
-                // Garante que o papel "ADMIN" existe. Se não, ele o cria.
-                if (!await _roleManager.RoleExistsAsync("ADMIN"))
+                var usuarioExistente = await _userManager.FindByEmailAsync(registroDto.Email!);
+                if (usuarioExistente != null)
                 {
-                    await _roleManager.CreateAsync(new IdentityRole<int>("ADMIN"));
+                    return BadRequest(new { erro = "Este e-mail já está em uso." });
                 }
-                // Adiciona o novo usuário ao papel "ADMIN".
-                await _userManager.AddToRoleAsync(novoUsuario, "ADMIN");
 
-                return Ok(new { Message = "Usuário administrador registrado com sucesso!" });
+                var cpfExistente = await _userManager.Users.FirstOrDefaultAsync(u => u.Documento == registroDto.Documento);
+                if (cpfExistente != null)
+                {
+                    return BadRequest(new { erro = "Este documento já está em uso." });
+                }
+
+                var novoUsuario = new Usuario
+                {
+                    UserName = registroDto.Email,
+                    Email = registroDto.Email,
+                    Documento = registroDto.Documento,
+                    PhoneNumber = registroDto.Telefone,
+                    Perfil = "ADMIN",
+                    NomeCompleto = registroDto.Nome
+                };
+
+                var resultado = await _userManager.CreateAsync(novoUsuario, registroDto.Senha!);
+
+                if (resultado.Succeeded)
+                {
+                    if (!await _roleManager.RoleExistsAsync("ADMIN"))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole<int>("ADMIN"));
+                    }
+                    await _userManager.AddToRoleAsync(novoUsuario, "ADMIN");
+
+                    return Ok(new { mensagem = "Usuário administrador registrado com sucesso!" });
+                }
+
+                var erros = resultado.Errors.ToDictionary(e => e.Code, e => e.Description);
+                return BadRequest(new { erro = "Falha ao registrar administrador.", detalhes = erros });
             }
-
-            foreach (var erro in resultado.Errors)
+            catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, erro.Description);
+                _logger.LogError(ex, "Ocorreu um erro inesperado durante o registro do administrador {Email}.", registroDto.Email);
+                return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
             }
-            return BadRequest(ModelState);
         }
 
-        // ENDPOINT POST - RECUPERAR SENHA   
         [HttpPost("recuperar-senha")]
         public async Task<IActionResult> RecuperarSenha([FromBody] RecuperarSenhaDto dto)
         {
-            // Verifica se o corpo da requisição está válido com base nas anotações do DTO
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            //busca o usuário pelo email informado no DTO
+            // O fluxo de recuperação de senha intencionalmente não revela muitos detalhes, por segurança.
+            // Ele não falhará ruidosamente para o cliente, apenas registrará o erro internamente.
             var usuario = await _userManager.FindByEmailAsync(dto.Email);
             if (usuario == null)
-                return NotFound("Usuário não encontrado.");
+            {
+                _logger.LogWarning("Tentativa de recuperação de senha para um e-mail não existente: {Email}", dto.Email);
+                // Mesmo se não encontrar, retorna uma mensagem genérica por segurança.
+                return Ok(new { mensagem = "Se um usuário com este e-mail existir, um link de recuperação foi enviado." });
+            }
 
-            // gera token de redefinição de senha e cria o link para o front-end
-            var token = await _userManager.GeneratePasswordResetTokenAsync(usuario);
-            var link = $"{_configuration["Frontend:ResetPasswordUrl"]}?token={Uri.EscapeDataString(token)}&email={dto.Email}";
+            try
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(usuario);
+                var link = $"{_configuration["Frontend:ResetPasswordUrl"]}?token={Uri.EscapeDataString(token)}&email={dto.Email}";
 
-            var corpo = $@"
+                var corpo = $@"
                         <html>
                           <body style='font-family: Arial, sans-serif; color: #333;'>
                             <h2 style='color: #007bff;'>🔒 Redefinição de Senha</h2>
@@ -250,108 +240,119 @@ namespace Decolei.net.Controllers
                           </body>
                         </html>";
 
-            // enia o email com mensagem, token e link
-            await _emailService.EnviarEmailAsync(dto.Email, "Recuperação de Senha - Decolei.Net", corpo);
+                await _emailService.EnviarEmailAsync(dto.Email, "Recuperação de Senha - Decolei.Net", corpo);
 
-            // etorna uma mensagem de sucesso
-            return Ok(new { message = "Link de recuperação enviado para seu e-mail." });
+                return Ok(new { mensagem = "Se um usuário com este e-mail existir, um link de recuperação foi enviado." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Falha ao enviar e-mail de recuperação de senha para o usuário {Email}.", dto.Email);
+                // Criticamente, mesmo se o envio do e-mail falhar, não informamos isso ao cliente.
+                // A falha é registrada, mas a resposta é a mesma.
+                return Ok(new { mensagem = "Se um usuário com este e-mail existir, um link de recuperação foi enviado." });
+            }
         }
 
-        // ENDPOINT POST - REDEFINIR SENHA
         [HttpPost("redefinir-senha")]
         public async Task<IActionResult> RedefinirSenha([FromBody] RedefinirSenhaDto dto)
         {
-            // Verifica se o corpo da requisição está válido com base nas anotações do DTO
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            // procura o usuário pelo email informado no DTO
-            var usuario = await _userManager.FindByEmailAsync(dto.Email);
-            if (usuario == null)
-                return NotFound("Usuário não encontrado.");
-
-            // realiza a redefinição de senha usando o token e a nova senha fornecida
-            var resultado = await _userManager.ResetPasswordAsync(usuario, dto.Token, dto.NovaSenha);
-
-            // se houver erros retorna com detalhes
-            if (!resultado.Succeeded)
+            try
             {
-                var erros = resultado.Errors.Select(e => e.Description);
-                return BadRequest(new { errors = erros });
+                var usuario = await _userManager.FindByEmailAsync(dto.Email);
+                if (usuario == null)
+                {
+                    // Evitamos dizer "usuário não encontrado" e retornamos um erro genérico.
+                    return BadRequest(new { erro = "Não foi possível redefinir a senha. O link pode ser inválido ou ter expirado." });
+                }
+
+                var resultado = await _userManager.ResetPasswordAsync(usuario, dto.Token, dto.NovaSenha);
+                if (!resultado.Succeeded)
+                {
+                    var erros = resultado.Errors.ToDictionary(e => e.Code, e => e.Description);
+                    return BadRequest(new { erro = "Não foi possível redefinir a senha.", detalhes = erros });
+                }
+
+                return Ok(new { mensagem = "Senha redefinida com sucesso!" });
             }
-
-            // mensagem de sucesso
-            return Ok(new { message = "Senha redefinida com sucesso!" });
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ocorreu um erro inesperado ao redefinir a senha do usuário {Email}.", dto.Email);
+                return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
+            }
         }
-         
 
-        // ENDPOINT POST - LOGOUT
         [HttpPost("logout")]
-        [Authorize] // Garante que apenas usuários logados possam chamar este endpoint
+        [Authorize]
         public async Task<IActionResult> Logout()
         {
+            // SignOutAsync é uma operação segura que geralmente não lança exceções.
             await _signInManager.SignOutAsync();
-            return Ok(new { message = "Logout realizado com sucesso!" });
+            return Ok(new { mensagem = "Logout realizado com sucesso!" });
         }
 
-        // --- ENDPOINT GET PARA LISTAR TODOS OS USUÁRIOS (APENAS ADMINS) ---
         [HttpGet]
-        [Authorize(Roles = "ADMIN")] // Proteção máxima!
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> ListarUsuarios()
         {
-            // Pega todos os usuários do banco de dados
-            var usuarios = await _userManager.Users.ToListAsync();
-
-            var usuariosDto = new List<UsuarioDto>();
-
-            // Para cada usuário, busca seu papel (role) e o mapeia para o DTO
-            foreach (var usuario in usuarios)
+            try
             {
-                var roles = await _userManager.GetRolesAsync(usuario);
+                var usuarios = await _userManager.Users.ToListAsync();
+                var usuariosDto = new List<UsuarioDto>();
 
-                usuariosDto.Add(new UsuarioDto
+                foreach (var usuario in usuarios)
+                {
+                    var roles = await _userManager.GetRolesAsync(usuario);
+                    usuariosDto.Add(new UsuarioDto
+                    {
+                        Id = usuario.Id,
+                        NomeCompleto = usuario.NomeCompleto,
+                        Email = usuario.Email,
+                        Telefone = usuario.PhoneNumber,
+                        Documento = usuario.Documento,
+                        Perfil = roles.FirstOrDefault() ?? "Sem Perfil"
+                    });
+                }
+                return Ok(usuariosDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ocorreu um erro inesperado ao listar os usuários.");
+                return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
+            }
+        }
+
+        [HttpGet("{id:int}")]
+        [Authorize(Roles = "ADMIN,ATENDENTE")]
+        public async Task<IActionResult> ObterUsuarioPorId(int id)
+        {
+            if (id <= 0) return BadRequest(new { erro = "ID de usuário inválido." });
+
+            try
+            {
+                var usuario = await _userManager.FindByIdAsync(id.ToString());
+                if (usuario == null)
+                {
+                    return NotFound(new { erro = $"Usuário com ID {id} não encontrado." });
+                }
+
+                var roles = await _userManager.GetRolesAsync(usuario);
+                var usuarioDto = new UsuarioDto
                 {
                     Id = usuario.Id,
                     NomeCompleto = usuario.NomeCompleto,
                     Email = usuario.Email,
                     Telefone = usuario.PhoneNumber,
                     Documento = usuario.Documento,
-                    // Pega o primeiro papel da lista (geralmente só haverá um)
                     Perfil = roles.FirstOrDefault() ?? "Sem Perfil"
-                });
-            }
+                };
 
-            return Ok(usuariosDto);
+                return Ok(usuarioDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ocorreu um erro inesperado ao buscar o usuário com ID {UserId}.", id);
+                return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
+            }
         }
-
-
-        // --- ENDPOINT GET PARA OBTER UM USUÁRIO PELO ID (APENAS ADMINS) ---
-        [HttpGet("{id:int}")]
-        [Authorize(Roles = "ADMIN,ATENDENTE")] // Proteção máxima!
-        public async Task<IActionResult> ObterUsuarioPorId(int id)
-        {
-            // Busca o usuário pelo ID. Note que FindByIdAsync espera uma string.
-            var usuario = await _userManager.FindByIdAsync(id.ToString());
-
-            if (usuario == null)
-            {
-                return NotFound(new { message = $"Usuário com ID {id} não encontrado." });
-            }
-
-            // Busca os papéis (roles) do usuário encontrado
-            var roles = await _userManager.GetRolesAsync(usuario);
-
-            // Mapeia o usuário para o DTO de resposta
-            var usuarioDto = new UsuarioDto
-            {
-                Id = usuario.Id,
-                NomeCompleto = usuario.NomeCompleto,
-                Email = usuario.Email,
-                Telefone = usuario.PhoneNumber,
-                Documento = usuario.Documento,
-                Perfil = roles.FirstOrDefault() ?? "Sem Perfil"
-            };
-
-            return Ok(usuarioDto);
-        } 
     }
 }

@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace Decolei.net.Repository
 {
-    // Se você ainda não tem este arquivo, crie-o. Se já tem, adicione os novos métodos.
     namespace Decolei.net.Repository
     {
         public class ReservaRepository : IReservaRepository
@@ -24,13 +23,13 @@ namespace Decolei.net.Repository
             public async Task<IEnumerable<Reserva>> ObterPorUsuarioIdAsync(int usuarioId)
             {
                 return await _context.Reservas
-                    .Where(r => r.Usuario_Id == usuarioId) // A MÁGICA ACONTECE AQUI
-                    .Include(r => r.PacoteViagem) // Inclui o pacote para mostrar detalhes na tela
+                    .Where(r => r.Usuario_Id == usuarioId)
+                    .Include(r => r.Usuario)
+                    .Include(r => r.PacoteViagem)
                     .OrderByDescending(r => r.Data)
                     .ToListAsync();
             }
 
-            // ... (seus outros métodos: ObterTodasAsync, ObterPorIdAsync, etc., continuam aqui) ...
             public async Task<IEnumerable<Reserva>> ObterTodasAsync()
             {
                 return await _context.Reservas
