@@ -53,11 +53,11 @@ namespace Decolei.net.Controllers
                 .AnyAsync(r =>
                     r.Usuario_Id == request.Usuario_Id &&
                     r.PacoteViagem_Id == request.PacoteViagem_Id &&
-                    r.Status.ToLower() == "confirmado");
+                    r.Status.ToLower() == "confirmada");
 
             if (!reservaValida)
 
-                return BadRequest("Você só pode avaliar pacotes que você reservou e estão confirmados.");
+                return BadRequest("Você só pode avaliar pacotes que você reservou e estão confirmadas.");
 
             var avaliacao = new Avaliacao
 
