@@ -1,8 +1,9 @@
-﻿using Decolei.net.Data;
+using Decolei.net.Data;
 using Decolei.net.DTOs;
 using Decolei.net.Models;
 using Decolei.net.Enums;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Decolei.net.Services
 {
@@ -20,8 +21,31 @@ namespace Decolei.net.Services
         }
 
         // Método principal para processar o pagamento
-        public async Task<PagamentoDto> RealizarPagamentoAsync(PagamentoEntradaDTO dto)
+        public async Task<PagamentoDto> RealizarPagamentoAsync(PagamentoEntradaDTO dto, ClaimsPrincipal user)
         {
+            var idUsuarioLogadoString = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(idUsuarioLogadoString, out var idUsuarioLogado))
+            {
+                throw new ArgumentException("Token de usuário inválido.");
+            }
+
+            var reserva = await dbContext.Reservas.FirstOrDefaultAsync(r => r.Id == dto.ReservaId);
+            if (reserva == null)
+            {
+                throw new ArgumentException("Reserva não encontrada.");
+            }
+
+            if (reserva.Usuario_Id != idUsuarioLogado)
+            {
+                throw new ArgumentException("Você não tem permissão para pagar por esta reserva.");
+            }
+
+            var pagamentoExistente = await dbContext.Pagamentos.FirstOrDefaultAsync(p => p.Reserva_Id == dto.ReservaId && p.Status == "APROVADO");
+            if (pagamentoExistente != null)
+            {
+                throw new ArgumentException("Esta reserva já possui um pagamento aprovado.");
+            }
+
             // 1. Simula o gateway de pagamento com os dados recebidos
             var gateway = new GatewayPagamentoService
             {
@@ -51,7 +75,6 @@ namespace Decolei.net.Services
             await dbContext.SaveChangesAsync();
 
             // 4. Se o pagamento for aprovado de imediato, atualiza o status da reserva também
-            var reserva = await dbContext.Reservas.FindAsync(dto.ReservaId);
             if (reserva != null)
             {
                 // Apenas atualiza imediatamente se NÃO for boleto
