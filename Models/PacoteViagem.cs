@@ -8,7 +8,7 @@
         public string? ImagemURL { get; set; }
         public string? VideoURL { get; set; }
         public string? Destino { get; set; }
-        public decimal? Valor { get; set; }
+        public decimal Valor { get; set; }
         public DateTime? DataInicio { get; set; }
         public DateTime? DataFim { get; set; }
 
