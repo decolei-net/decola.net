@@ -26,6 +26,7 @@ namespace Decolei.net.Repository
                     .Where(r => r.Usuario_Id == usuarioId)
                     .Include(r => r.Usuario)
                     .Include(r => r.PacoteViagem)
+                    .Include(r => r.Viajantes)
                     .OrderByDescending(r => r.Data)
                     .ToListAsync();
             }
@@ -35,6 +36,7 @@ namespace Decolei.net.Repository
                 return await _context.Reservas
                     .Include(r => r.Usuario)
                     .Include(r => r.PacoteViagem)
+                    .Include(r => r.Viajantes)
                     .OrderByDescending(r => r.Data)
                     .ToListAsync();
             }
