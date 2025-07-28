@@ -1,4 +1,7 @@
-﻿namespace Decolei.net.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Decolei.net.Models;
+
+namespace Decolei.net.Models
 {
     public class PacoteViagem
     {
@@ -12,15 +15,17 @@
         public DateTime? DataInicio { get; set; }
         public DateTime? DataFim { get; set; }
 
-        // --- INÍCIO DA MUDANÇA ---
-        // Chave estrangeira para o usuário que criou o pacote
+        // --- CORREÇÃO: VOLTANDO PARA INT ---
+        // A chave estrangeira para o seu usuário do Identity é um int.
         public int UsuarioId { get; set; }
 
-        // Propriedade de navegação para o usuário
+        // A propriedade de navegação aponta para a sua classe Usuario.
         public virtual Usuario? Usuario { get; set; }
+        // --- FIM DA CORREÇÃO ---
 
-        // --- FIM DA MUDANÇA ---
-        // Propriedade de navegação para as Reservas e Avaliações
+        [NotMapped]
+        public int QuantidadeVagas { get; set; } = 30;
+
         public virtual ICollection<Reserva> Reservas { get; set; } = new List<Reserva>();
         public virtual ICollection<Avaliacao> Avaliacoes { get; set; } = new List<Avaliacao>();
     }

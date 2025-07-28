@@ -62,6 +62,14 @@ namespace Decolei.net.Repository
                 _context.Entry(reserva).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
             }
+
+            public async Task<IEnumerable<Reserva>> ObterPorPacoteIdAsync(int pacoteId)
+            {
+                return await _context.Reservas
+                    .Where(r => r.PacoteViagem_Id == pacoteId)
+                    .Include(r => r.Viajantes)
+                    .ToListAsync();
+            }
         }
     }
 }
