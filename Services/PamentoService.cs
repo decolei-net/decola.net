@@ -22,6 +22,18 @@ namespace Decolei.net.Services
         // Método principal para processar o pagamento
         public async Task<PagamentoDto> RealizarPagamentoAsync(PagamentoEntradaDTO dto)
         {
+            var reserva = await dbContext.Reservas.FindAsync(dto.ReservaId);
+
+            if (reserva == null)
+            {
+                throw new ArgumentException("Reserva não encontrada.");
+            }
+
+            if (dto.Valor != reserva.ValorTotal)
+            {
+                throw new ArgumentException($"O valor do pagamento (R$ {dto.Valor:F2}) não corresponde ao valor da reserva (R$ {reserva.ValorTotal:F2}).");
+            }
+
             // 1. Simula o gateway de pagamento com os dados recebidos
             var gateway = new GatewayPagamentoService
             {
@@ -51,7 +63,6 @@ namespace Decolei.net.Services
             await dbContext.SaveChangesAsync();
 
             // 4. Se o pagamento for aprovado de imediato, atualiza o status da reserva também
-            var reserva = await dbContext.Reservas.FindAsync(dto.ReservaId);
             if (reserva != null)
             {
                 // Apenas atualiza imediatamente se NÃO for boleto

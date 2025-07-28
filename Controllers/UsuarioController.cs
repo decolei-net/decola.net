@@ -235,7 +235,10 @@ namespace Decolei.net.Controllers
 
                             <br />
                             <p style='font-size: 14px; color: #999;'>Se você não solicitou essa redefinição, pode ignorar este e-mail com segurança.</p>
-
+                            <br />
+                            <p>Agradecemos por viajar com a <strong>Decolei.NET</strong>!</p>
+                            <p>Se precisar de algo, estamos aqui para ajudar.</p>
+                            <br />
                             <p style='margin-top: 40px;'>Atenciosamente,<br /><em>Equipe Decolei.NET</em></p>
                           </body>
                         </html>";
