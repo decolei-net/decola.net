@@ -53,11 +53,11 @@ namespace Decolei.net.Controllers
                 .AnyAsync(r =>
                     r.Usuario_Id == request.Usuario_Id &&
                     r.PacoteViagem_Id == request.PacoteViagem_Id &&
-                    r.Status.ToLower() == "confirmado");
+                    r.Status.ToLower() == "confirmada");
 
             if (!reservaValida)
 
-                return BadRequest("Você só pode avaliar pacotes que você reservou e estão confirmados.");
+                return BadRequest("Você só pode avaliar pacotes que você reservou e estão confirmadas.");
 
             var avaliacao = new Avaliacao
 
@@ -114,36 +114,35 @@ namespace Decolei.net.Controllers
             return Ok(pendentes);
         }
 
-        [HttpPut("{id}/aprovar")]
-        public async Task<IActionResult> AprovarAvaliacao(int id)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> AtualizarStatusAvaliacao(int id, [FromBody] AvaliacaoAcaoDto dto)
         {
             var avaliacao = await _context.Avaliacoes.FindAsync(id);
 
             if (avaliacao == null)
                 return NotFound("Avaliação não encontrada.");
 
-            if (avaliacao.Aprovada == true)
-                return BadRequest("Avaliação já está aprovada.");
+            if (dto.Acao?.ToLower() == "aprovar")
+            {
+                if (avaliacao.Aprovada == true)
+                    return BadRequest("Avaliação já está aprovada.");
 
-            avaliacao.Aprovada = true;
-            await _context.SaveChangesAsync();
+                avaliacao.Aprovada = true;
+                await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Avaliação aprovada com sucesso." });
+                return Ok(new { message = "Avaliação aprovada com sucesso." });
+            }
+            else if (dto.Acao?.ToLower() == "rejeitar")
+            {
+                _context.Avaliacoes.Remove(avaliacao);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Avaliação rejeitada e excluída com sucesso." });
+            }
+
+            return BadRequest("Ação inválida. Use 'aprovar' ou 'rejeitar'.");
         }
 
-        [HttpPut("{id}/rejeitar")]
-        public async Task<IActionResult> RejeitarAvaliacao(int id)
-        {
-            var avaliacao = await _context.Avaliacoes.FindAsync(id);
-
-            if (avaliacao == null)
-                return NotFound("Avaliação não encontrada.");
-
-            _context.Avaliacoes.Remove(avaliacao);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Avaliação rejeitada e excluída com sucesso." });
-        }
 
     }
 

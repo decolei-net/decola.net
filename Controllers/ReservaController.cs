@@ -1,4 +1,4 @@
-﻿using Decolei.net.DTOs;
+using Decolei.net.DTOs;
 using Decolei.net.Interfaces;
 using Decolei.net.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -126,15 +126,15 @@ namespace Decolei.net.Controllers
                 }
 
                 // Calcula o número total de pessoas da reserva, considera 1 como o usuário logado
-                int numeroTotalDePessoas = 1 + criarReservaDto.Viajantes.Count;
-                decimal valorCalculado = pacote.Valor * numeroTotalDePessoas;
+                var numeroTotalDePessoas = 1 + (criarReservaDto.Viajantes?.Count ?? 0);
+                var valorTotalCalculado = pacote.Valor * numeroTotalDePessoas;
 
                 var reserva = new Reserva
                 {
                     Usuario_Id = idUsuarioLogado,
                     PacoteViagem_Id = criarReservaDto.PacoteViagemId,
                     Data = DateTime.UtcNow,
-                    ValorTotal = valorCalculado,
+                    ValorTotal = valorTotalCalculado,
                     Status = "PENDENTE",
                     Numero = Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper()
                 };

@@ -1,4 +1,4 @@
-﻿using Decolei.net.Data;
+using Decolei.net.Data;
 using Decolei.net.DTOs;
 using Decolei.net.Enums;
 using Decolei.net.Models;
@@ -44,7 +44,7 @@ namespace Decolei.net.Controllers
             });
         }
 
-        [HttpPost] // criar um novo pagamento para reserva existente
+        [HttpPost]
         [Authorize(Roles = "ADMIN, CLIENTE")]
         public async Task<IActionResult> CriarPagamento(PagamentoEntradaDTO dto)
         {
@@ -54,7 +54,8 @@ namespace Decolei.net.Controllers
 
             try
             {
-                var pagamento = await _pagamentoService.RealizarPagamentoAsync(dto);
+                // PASSA O CONTEXTO DO USUÁRIO ATUAL PARA O SERVIÇO
+                var pagamento = await _pagamentoService.RealizarPagamentoAsync(dto, User);
                 return Ok(pagamento);
             }
             catch (ArgumentException ex)

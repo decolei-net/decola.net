@@ -1,4 +1,4 @@
-﻿using Decolei.net.Data;
+using Decolei.net.Data;
 using Decolei.net.DTOs;
 using Decolei.net.Models;
 using Decolei.net.Enums;
@@ -46,7 +46,6 @@ namespace Decolei.net.Services
             {
                 throw new ArgumentException($"O valor do pagamento (R$ {dto.Valor:F2}) não corresponde ao valor da reserva (R$ {reserva.ValorTotal:F2}).");
             }
-
             var pagamentoExistente = await dbContext.Pagamentos.FirstOrDefaultAsync(p => p.Reserva_Id == dto.ReservaId && p.Status == "APROVADO");
             if (pagamentoExistente != null)
             {
