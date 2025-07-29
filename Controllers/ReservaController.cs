@@ -125,6 +125,26 @@ namespace Decolei.net.Controllers
                     return NotFound(new { erro = $"Pacote de viagem com ID {criarReservaDto.PacoteViagemId} não encontrado." });
                 }
 
+                // --- INÍCIO DA NOVA LÓGICA DE VERIFICAÇÃO DE VAGAS ---
+
+                // Calcula o número de viajantes para a nova reserva (incluindo o usuário logado)
+                var viajantesNestaReserva = 1 + (criarReservaDto.Viajantes?.Count ?? 0);
+
+                // Busca todas as reservas existentes para este pacote
+                var reservasDoPacote = await _reservaRepository.ObterPorPacoteIdAsync(criarReservaDto.PacoteViagemId);
+
+                // Calcula o total de vagas já ocupadas
+                var vagasOcupadas = reservasDoPacote.Sum(r => 1 + r.Viajantes.Count);
+
+                // Verifica se há vagas disponíveis
+                if ((vagasOcupadas + viajantesNestaReserva) > pacote.QuantidadeVagas)
+                {
+                    return BadRequest(new { erro = "Não há vagas disponíveis para este pacote." });
+                }
+
+                // --- FIM DA NOVA LÓGICA DE VERIFICAÇÃO DE VAGAS ---
+
+
                 // Calcula o número total de pessoas da reserva, considera 1 como o usuário logado
                 var numeroTotalDePessoas = 1 + (criarReservaDto.Viajantes?.Count ?? 0);
                 var valorTotalCalculado = pacote.Valor * numeroTotalDePessoas;

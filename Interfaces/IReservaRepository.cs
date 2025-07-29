@@ -11,5 +11,6 @@ namespace Decolei.net.Interfaces
         Task<Reserva> ObterPorIdAsync(int id);
         Task AdicionarAsync(Reserva reserva);
         Task AtualizarAsync(Reserva reserva);
+        Task<IEnumerable<Reserva>> ObterPorPacoteIdAsync(int pacoteId);
     }
 }
