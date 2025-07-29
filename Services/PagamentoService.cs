@@ -40,6 +40,12 @@ namespace Decolei.net.Services
                 throw new ArgumentException("Você não tem permissão para pagar por esta reserva.");
             }
 
+            // LÓGICA INSERIDA: Validar se o valor do pagamento corresponde ao valor da reserva.
+            // Esta é a validação que você pediu para incluir.
+            if (dto.Valor != reserva.ValorTotal)
+            {
+                throw new ArgumentException($"O valor do pagamento (R$ {dto.Valor:F2}) não corresponde ao valor da reserva (R$ {reserva.ValorTotal:F2}).");
+            }
             var pagamentoExistente = await dbContext.Pagamentos.FirstOrDefaultAsync(p => p.Reserva_Id == dto.ReservaId && p.Status == "APROVADO");
             if (pagamentoExistente != null)
             {
