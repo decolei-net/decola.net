@@ -3,6 +3,7 @@ using Decolei.net.DTOs;
 using Decolei.net.Models;
 using Decolei.net.Enums;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Decolei.net.Services
 {
@@ -20,18 +21,36 @@ namespace Decolei.net.Services
         }
 
         // Método principal para processar o pagamento
-        public async Task<PagamentoDto> RealizarPagamentoAsync(PagamentoEntradaDTO dto)
+        public async Task<PagamentoDto> RealizarPagamentoAsync(PagamentoEntradaDTO dto, ClaimsPrincipal user)
         {
-            var reserva = await dbContext.Reservas.FindAsync(dto.ReservaId);
+            var idUsuarioLogadoString = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(idUsuarioLogadoString, out var idUsuarioLogado))
+            {
+                throw new ArgumentException("Token de usuário inválido.");
+            }
 
+            var reserva = await dbContext.Reservas.FirstOrDefaultAsync(r => r.Id == dto.ReservaId);
             if (reserva == null)
             {
                 throw new ArgumentException("Reserva não encontrada.");
             }
 
+            if (reserva.Usuario_Id != idUsuarioLogado)
+            {
+                throw new ArgumentException("Você não tem permissão para pagar por esta reserva.");
+            }
+
+            // LÓGICA INSERIDA: Validar se o valor do pagamento corresponde ao valor da reserva.
+            // Esta é a validação que você pediu para incluir.
             if (dto.Valor != reserva.ValorTotal)
             {
                 throw new ArgumentException($"O valor do pagamento (R$ {dto.Valor:F2}) não corresponde ao valor da reserva (R$ {reserva.ValorTotal:F2}).");
+            }
+
+            var pagamentoExistente = await dbContext.Pagamentos.FirstOrDefaultAsync(p => p.Reserva_Id == dto.ReservaId && p.Status == "APROVADO");
+            if (pagamentoExistente != null)
+            {
+                throw new ArgumentException("Esta reserva já possui um pagamento aprovado.");
             }
 
             // 1. Simula o gateway de pagamento com os dados recebidos
