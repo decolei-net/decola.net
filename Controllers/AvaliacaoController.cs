@@ -54,7 +54,7 @@ namespace Decolei.net.Controllers
                 .AnyAsync(r =>
                     r.Usuario_Id == request.Usuario_Id &&
                     r.PacoteViagem_Id == request.PacoteViagem_Id &&
-                    r.Status.ToLower() == "confirmada");
+                    r.Status.ToLower() == "aprovado");
 
             if (!reservaValida)
 
