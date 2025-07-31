@@ -3,12 +3,13 @@ using Decolei.net.DTOs;
 using Decolei.net.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Decolei.net.Controllers
 {
     [ApiController]
-    [Route("avaliacoes")]
+    [Route("api/avaliacoes")]
     public class AvaliacaoController : ControllerBase
     {
         private readonly DecoleiDbContext _context;
@@ -143,7 +144,37 @@ namespace Decolei.net.Controllers
             return BadRequest("Ação inválida. Use 'aprovar' ou 'rejeitar'.");
         }
 
+        [HttpGet("minhas-avaliacoes")]
+        [Authorize]
+        public async Task<IActionResult> GetMinhasAvaliacoes()
+        {
+            // 1. Pega o ID do usuário diretamente do token JWT. É seguro e confiável.
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Não foi possível identificar o usuário a partir do token.");
+            }
 
+            // 2. Busca no banco de dados todas as avaliações que pertencem a este usuário.
+            var avaliacoesDoUsuario = await _context.Avaliacoes
+                .Where(a => a.Usuario_Id == userId)
+                .Include(a => a.PacoteViagem)
+                .Select(a => new {
+                    Id = a.Id,
+                    Nota = a.Nota,
+                    Comentario = a.Comentario,
+                    Data = a.Data,
+                    Aprovada = a.Aprovada, // Inclui o status para o usuário saber se foi moderada
+                    Pacote = new
+                    {
+                        Id = a.PacoteViagem.Id,
+                        Titulo = a.PacoteViagem.Titulo
+                    }
+                })
+                .OrderByDescending(a => a.Data) // Mostra as mais recentes primeiro
+                .ToListAsync();
+
+            return Ok(avaliacoesDoUsuario);
+        }
     }
-
 }
