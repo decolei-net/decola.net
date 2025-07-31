@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore; // Necessário para usar metodos asíncrono
 namespace Decolei.net.Controllers
 {
     [ApiController]
-    [Route("pagamentos")]
+    [Route("api/Pagamentos")]
     public class PagamentosController : ControllerBase
     {
         private readonly DecoleiDbContext _context;

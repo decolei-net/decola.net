@@ -1,5 +1,6 @@
 ﻿using Decolei.net.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Decolei.net.DTOs
 {
@@ -16,6 +17,7 @@ namespace Decolei.net.DTOs
         public string? Cpf { get; set; }
 
         [Required]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public MetodoPagamento Metodo { get; set; }
 
         [Required]
