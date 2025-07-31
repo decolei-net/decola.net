@@ -79,6 +79,7 @@ public class Program
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false));
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
             });
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
