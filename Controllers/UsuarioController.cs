@@ -294,7 +294,7 @@ namespace Decolei.net.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = "ADMIN,ATENDENTE")]
         public async Task<IActionResult> ListarUsuarios()
         {
             try
