@@ -13,99 +13,105 @@ namespace Decolei.net.Controllers
         private readonly DecoleiDbContext _context;
         private readonly IWebHostEnvironment _env;
 
-        // Injetamos o DbContext para acessar o banco de dados
         public ImagensController(DecoleiDbContext context, IWebHostEnvironment env)
         {
             _context = context;
             _env = env;
         }
 
-        // 1. UPLOAD COM ASSOCIAÇÃO A UM PACOTE
-        //    - Rota agora espera o ID do pacote: api/Imagens/upload/5
-        //    - Apenas ADMINS podem acessar.
+        // Endpoint para UPLOAD DE IMAGENS
         [HttpPost("upload/{pacoteId}")]
         [Authorize(Roles = "ADMIN,ADMINISTRADOR")]
-        public async Task<IActionResult> Upload(int pacoteId, IFormFile file)
+        public async Task<IActionResult> UploadImagem(int pacoteId, IFormFile file)
         {
-            // Verifica se o pacote existe
             var pacote = await _context.PacotesViagem.FindAsync(pacoteId);
-            if (pacote == null)
-            {
-                return NotFound($"Pacote com ID {pacoteId} não encontrado.");
-            }
+            if (pacote == null) return NotFound($"Pacote com ID {pacoteId} não encontrado.");
+            if (file == null || file.Length == 0) return BadRequest("Nenhum arquivo de imagem enviado.");
 
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest("Nenhum arquivo enviado.");
-            }
-
-            // Caminho para salvar o arquivo físico
             var uploadsFolderPath = Path.Combine(_env.WebRootPath, "uploads", "pacotes");
-            if (!Directory.Exists(uploadsFolderPath))
-            {
-                Directory.CreateDirectory(uploadsFolderPath);
-            }
+            Directory.CreateDirectory(uploadsFolderPath); // Garante que a pasta exista
 
             var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
             var filePath = Path.Combine(uploadsFolderPath, fileName);
 
-            // Salva o arquivo no disco
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
             }
 
-            // Cria a entidade Imagem e associa ao pacote
-            var imagem = new Imagem
+            var midia = new Imagem
             {
-                Url = $"uploads/pacotes/{fileName}", // Salva o caminho relativo
+                Url = $"uploads/pacotes/{fileName}",
+                IsVideo = false,
                 PacoteViagemId = pacoteId
             };
 
-            // Salva a nova entidade no banco de dados
-            _context.Imagens.Add(imagem);
+            _context.Imagens.Add(midia);
             await _context.SaveChangesAsync();
-
-            // Retorna a informação da imagem criada
-            return Ok(new { id = imagem.Id, url = imagem.Url });
+            return Ok(new { id = midia.Id, url = midia.Url, isVideo = midia.IsVideo });
         }
 
-        // 2. DELETAR UMA IMAGEM
-        //    - Rota espera o ID da imagem: api/Imagens/5
-        //    - Apenas ADMINS podem acessar.
+        // Endpoint para ADICIONAR VÍDEOS
+        [HttpPost("add-video/{pacoteId}")]
+        [Authorize(Roles = "ADMIN,ADMINISTRADOR")]
+        public async Task<IActionResult> AddVideo(int pacoteId, [FromBody] VideoDto videoDto)
+        {
+            var pacote = await _context.PacotesViagem.FindAsync(pacoteId);
+            if (pacote == null) return NotFound($"Pacote com ID {pacoteId} não encontrado.");
+            if (videoDto == null || string.IsNullOrWhiteSpace(videoDto.Url)) return BadRequest("A URL do vídeo é inválida.");
+
+            var midia = new Imagem
+            {
+                Url = videoDto.Url,
+                IsVideo = true,
+                PacoteViagemId = pacoteId
+            };
+
+            _context.Imagens.Add(midia);
+            await _context.SaveChangesAsync();
+            return Ok(new { id = midia.Id, url = midia.Url, isVideo = midia.IsVideo });
+        }
+
+        // ******** NOVO ENDPOINT PARA BUSCAR TODAS AS MÍDIAS DE UM PACOTE ********
+        [HttpGet("all/{pacoteId}")]
+        [Authorize(Roles = "ADMIN,ADMINISTRADOR")]
+        public async Task<IActionResult> GetAllMidiaPorPacote(int pacoteId)
+        {
+            var midias = await _context.Imagens
+                .Where(m => m.PacoteViagemId == pacoteId)
+                .Select(m => new { m.Id, m.Url, m.IsVideo }) // Retorna ID, URL e se é vídeo
+                .ToListAsync();
+
+            return Ok(midias);
+        }
+
+        // Endpoint para DELETAR MÍDIA
         [HttpDelete("{id}")]
         [Authorize(Roles = "ADMIN,ADMINISTRADOR")]
         public async Task<IActionResult> Delete(int id)
         {
-            // Busca a imagem no banco de dados
-            var imagem = await _context.Imagens.FindAsync(id);
-            if (imagem == null)
-            {
-                return NotFound($"Imagem com ID {id} não encontrada.");
-            }
+            var midia = await _context.Imagens.FindAsync(id);
+            if (midia == null) return NotFound($"Mídia com ID {id} não encontrada.");
 
-            // Monta o caminho completo do arquivo físico
-            var filePath = Path.Combine(_env.WebRootPath, imagem.Url);
-
-            // Tenta deletar o arquivo físico (se ele existir)
-            if (System.IO.File.Exists(filePath))
+            if (!midia.IsVideo)
             {
-                try
+                var filePath = Path.Combine(_env.WebRootPath, midia.Url);
+                if (System.IO.File.Exists(filePath))
                 {
-                    System.IO.File.Delete(filePath);
-                }
-                catch (IOException ex)
-                {
-                    // Loga o erro, mas continua para remover do DB
-                    Console.WriteLine($"Erro ao deletar arquivo físico: {ex.Message}");
+                    try { System.IO.File.Delete(filePath); }
+                    catch (IOException ex) { Console.WriteLine($"Erro ao deletar arquivo físico: {ex.Message}"); }
                 }
             }
 
-            // Remove o registro da imagem do banco de dados
-            _context.Imagens.Remove(imagem);
+            _context.Imagens.Remove(midia);
             await _context.SaveChangesAsync();
-
-            return Ok(new { mensagem = "Imagem deletada com sucesso." });
+            return Ok(new { mensagem = "Mídia deletada com sucesso." });
         }
+    }
+
+    // DTO para receber a URL do vídeo
+    public class VideoDto
+    {
+        public required string Url { get; set; }
     }
 }

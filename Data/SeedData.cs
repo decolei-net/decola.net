@@ -22,7 +22,6 @@ namespace Decolei.net.Data
             await SeedUserAsync(userManager, "cliente@decolei.net", "SenhaCliente123!", "Cliente de Teste", "11111111111", "CLIENTE");
             await SeedUserAsync(userManager, "atendente@decolei.net", "SenhaAtendente123!", "Atendente de Teste", "22222222222", "ATENDENTE");
 
-            // Busca os usuários que vamos usar para criar os dados
             var adminUser = await userManager.FindByEmailAsync("admin@decolei.net");
             var clienteUser = await userManager.FindByEmailAsync("cliente@decolei.net");
 
@@ -70,18 +69,15 @@ namespace Decolei.net.Data
 
         private static async Task SeedPacotesEHistoricoAsync(DecoleiDbContext context, Usuario adminUser, Usuario clienteUser)
         {
-            // Só executa o seed se não houver NENHUM pacote, para evitar duplicatas.
             if (await context.PacotesViagem.AnyAsync())
             {
                 return;
             }
 
-            // PACOTES FUTUROS (os que você já tinha)
             var pacoteQuioto = new PacoteViagem
             {
                 Titulo = "Semana Mágica em Quioto",
                 Descricao = "Explore os templos antigos, jardins zen e a cultura gueixa na antiga capital do Japão.",
-                VideoURL = "https://youtube.com/chapada",
                 Destino = "Quioto, Japão",
                 Valor = 9800.00m,
                 DataInicio = new DateTime(2025, 10, 05),
@@ -89,9 +85,10 @@ namespace Decolei.net.Data
                 UsuarioId = adminUser.Id,
                 Imagens = new List<Imagem>
                 {
-                    new Imagem { Url = "uploads/pacotes/quioto-arashiyama.jpg" },
-                    new Imagem { Url = "uploads/pacotes/quioto-fushimi-inari.jpg" },
-                    new Imagem { Url = "uploads/pacotes/quioto-kinkaku-ji.jpg" }
+                    new Imagem { Url = "uploads/pacotes/quioto-arashiyama.jpg", IsVideo = false },
+                    new Imagem { Url = "https://www.youtube.com/embed/aNC3UOYOejI?si=UCXT6BMqvSefHarj", IsVideo = true }, // VÍDEO DE QUIOTO
+                    new Imagem { Url = "uploads/pacotes/quioto-fushimi-inari.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/quioto-kinkaku-ji.jpg", IsVideo = false }
                 }
             };
 
@@ -99,7 +96,6 @@ namespace Decolei.net.Data
             {
                 Titulo = "Aventura na Costa Amalfitana",
                 Descricao = "Viagem de carro pelas vilas coloridas de Positano, Amalfi e Ravello, com vistas espetaculares do Mediterrâneo.",
-                VideoURL = "https://youtube.com/noronha",
                 Destino = "Costa Amalfitana, Itália",
                 Valor = 7500.00m,
                 DataInicio = new DateTime(2025, 9, 15),
@@ -107,67 +103,55 @@ namespace Decolei.net.Data
                 UsuarioId = adminUser.Id,
                 Imagens = new List<Imagem>
                 {
-                    new Imagem { Url = "uploads/pacotes/amalfi-coast-geral.jpg" },
-                    new Imagem { Url = "uploads/pacotes/amalfi-positano.jpg" },
-                    new Imagem { Url = "uploads/pacotes/amalfi-ravello.jpg" }
+                    new Imagem { Url = "uploads/pacotes/amalfi-coast-geral.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/amalfi-positano.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/amalfi-ravello.jpg", IsVideo = false }
                 }
             };
 
-            // PACOTE PASSADO (o novo pacote que você pediu)
             var pacoteGramado = new PacoteViagem
             {
                 Titulo = "Inverno Mágico em Gramado",
                 Descricao = "Curta o charme europeu da Serra Gaúcha, com fondues, vinhos e paisagens de tirar o fôlego.",
-                VideoURL = "http://googleusercontent.com/youtube.com/3",
                 Destino = "Gramado, RS",
                 Valor = 2500.00m,
-                DataInicio = new DateTime(2025, 6, 12), // Data no passado
-                DataFim = new DateTime(2025, 6, 19),   // Data no passado
+                DataInicio = new DateTime(2025, 6, 12),
+                DataFim = new DateTime(2025, 6, 19),
                 UsuarioId = adminUser.Id,
                 Imagens = new List<Imagem>
                 {
-                    new Imagem { Url = "uploads/pacotes/gramado-rua-torta.jpg" },
-                    new Imagem { Url = "uploads/pacotes/gramado-lago-negro.jpg" },
+                    new Imagem { Url = "uploads/pacotes/gramado-rua-torta.jpg", IsVideo = false },
+                    new Imagem { Url = "https://www.youtube.com/embed/8Qghrljp9q0?si=5z7Jjngbsl8MTzo5", IsVideo = true }, // VÍDEO DE GRAMADO
+                    new Imagem { Url = "uploads/pacotes/gramado-lago-negro.jpg", IsVideo = false },
                 }
             };
 
-            // CRIAÇÃO DA RESERVA, PAGAMENTO E AVALIAÇÃO PARA O PACOTE DE GRAMADO
             var reservaGramado = new Reserva
             {
-                PacoteViagem = pacoteGramado, // Associa a reserva ao pacote
-                Usuario = clienteUser,        // Associa ao "Cliente de Teste"
+                PacoteViagem = pacoteGramado,
+                Usuario = clienteUser,
                 Data = new DateTime(2025, 5, 20),
                 ValorTotal = pacoteGramado.Valor,
                 Status = "Finalizada",
                 Numero = Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper(),
-                Viajantes = new List<Viajante>
-                {
-                    // O próprio cliente é o viajante
-                    new Viajante { Nome = clienteUser.NomeCompleto, Documento = clienteUser.Documento }
-                },
-                Pagamentos = new List<Pagamento>
-                {
-                    new Pagamento { Forma = "PIX", Status = "Confirmado", Data = new DateTime(2025, 5, 20) }
-                }
+                Viajantes = new List<Viajante> { new Viajante { Nome = clienteUser.NomeCompleto, Documento = clienteUser.Documento } },
+                Pagamentos = new List<Pagamento> { new Pagamento { Forma = "PIX", Status = "Confirmado", Data = new DateTime(2025, 5, 20) } }
             };
 
-            // Cria a avaliação do cliente para o pacote de Gramado
             var avaliacaoGramado = new Avaliacao
             {
                 PacoteViagem = pacoteGramado,
                 Usuario = clienteUser,
-                Nota = 4, // 4 estrelas, como solicitado
+                Nota = 4,
                 Comentario = "Viagem incrível! Gramado é uma cidade linda e o hotel era muito confortável. Só não dou 5 estrelas porque o tempo de um dos passeios foi um pouco curto. Mas recomendo!",
-                Data = new DateTime(2025, 6, 22), // Data da avaliação após a viagem
+                Data = new DateTime(2025, 6, 22),
                 Aprovada = true
             };
 
-            // Adiciona tudo ao contexto do banco de dados
             context.PacotesViagem.AddRange(pacoteQuioto, pacoteAmalfi, pacoteGramado);
             context.Reservas.Add(reservaGramado);
             context.Avaliacoes.Add(avaliacaoGramado);
 
-            // Salva todas as alterações de uma vez
             await context.SaveChangesAsync();
             Console.WriteLine("Pacotes de viagem futuros e histórico de viagem criados com sucesso.");
         }

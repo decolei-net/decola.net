@@ -77,7 +77,6 @@ namespace Decolei.net.Data
                 entity.Property(e => e.Id).HasColumnName("PacoteViagem_Id");
                 entity.Property(e => e.Titulo).HasColumnName("PacoteViagem_Titulo").HasMaxLength(100).IsRequired();
                 entity.Property(e => e.Descricao).HasColumnName("PacoteViagem_Descricao").HasMaxLength(500);
-                entity.Property(e => e.VideoURL).HasColumnName("PacoteViagem_VideoURL").HasMaxLength(255);
                 entity.Property(e => e.Destino).HasColumnName("PacoteViagem_Destino").HasMaxLength(100);
                 entity.Property(e => e.Valor).HasColumnName("PacoteViagem_Valor").HasColumnType("decimal(10, 2)");
                 entity.Property(e => e.DataInicio).HasColumnName("PacoteViagem_DataInicio").HasColumnType("datetime");
@@ -104,14 +103,16 @@ namespace Decolei.net.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Id).HasColumnName("Imagem_Id");
                 entity.Property(e => e.Url).HasColumnName("Imagem_Url").HasMaxLength(255).IsRequired();
+
+                // LINHA ADICIONADA PARA CONFIGURAR A NOVA PROPRIEDADE
+                entity.Property(e => e.IsVideo).HasColumnName("Imagem_IsVideo").IsRequired();
+
                 entity.Property(e => e.PacoteViagemId).HasColumnName("PacoteViagem_Id").IsRequired();
 
-                // Define o relacionamento: Uma Imagem pertence a um PacoteViagem.
-                // Um PacoteViagem pode ter muitas Imagens.
                 entity.HasOne(i => i.PacoteViagem)
-                      .WithMany(p => p.Imagens) // A propriedade de coleção em PacoteViagem.cs
+                      .WithMany(p => p.Imagens)
                       .HasForeignKey(i => i.PacoteViagemId)
-                      .OnDelete(DeleteBehavior.Cascade); // Se o pacote for deletado, as imagens também são.
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
 

@@ -3,7 +3,6 @@ using Decolei.net.Interfaces;
 using Decolei.net.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace Decolei.net.Controllers
@@ -21,8 +20,7 @@ namespace Decolei.net.Controllers
             _logger = logger;
         }
 
-        // 1. MÉTODO DE MAPEAMENTO CORRIGIDO
-        //    - Trocamos "ImagemURL" pela nova coleção "Imagens".
+        // MÉTODO DE MAPEAMENTO ATUALIZADO PARA MÍDIA
         private object MapearParaDtoComVagas(PacoteViagem pacote)
         {
             var vagasOcupadas = pacote.Reservas?.Sum(r => 1 + (r.Viajantes?.Count ?? 0)) ?? 0;
@@ -33,9 +31,12 @@ namespace Decolei.net.Controllers
                 pacote.Id,
                 pacote.Titulo,
                 pacote.Descricao,
-                // ALTERAÇÃO AQUI:
-                Imagens = pacote.Imagens?.Select(img => img.Url).ToList() ?? new List<string>(),
-                pacote.VideoURL,
+
+                // ALTERAÇÃO CRÍTICA AQUI:
+                // Enviamos uma lista de objetos, informando a URL e se é um vídeo.
+                // O nome da propriedade foi mantido como "Imagens" para consistência.
+                Imagens = pacote.Imagens?.Select(midia => new { midia.Url, midia.IsVideo }).ToList(),
+
                 pacote.Destino,
                 pacote.Valor,
                 pacote.DataInicio,
@@ -73,7 +74,6 @@ namespace Decolei.net.Controllers
             try
             {
                 var pacotes = await _pacoteRepository.GetByFiltersAsync(destino, precoMin, precoMax, dataInicio, dataFim);
-                // Nenhuma mudança aqui, o mapeamento já resolve
                 var pacotesComVagas = pacotes.Select(MapearParaDtoComVagas);
                 return Ok(pacotesComVagas);
             }
@@ -94,7 +94,6 @@ namespace Decolei.net.Controllers
                 {
                     return NotFound(new { erro = $"Pacote com ID {id} não encontrado." });
                 }
-                // Nenhuma mudança aqui, o mapeamento já resolve
                 var pacoteComVagas = MapearParaDtoComVagas(pacote);
                 return Ok(pacoteComVagas);
             }
@@ -105,13 +104,11 @@ namespace Decolei.net.Controllers
             }
         }
 
-        // 2. MÉTODO DE CRIAÇÃO CORRIGIDO
-        //    - Removemos a atribuição de "ImagemURL" do DTO.
-        //    - Obs: Você precisará ajustar seu CriarPacoteViagemDto para remover a propriedade ImagemURL.
         [HttpPost]
         [Authorize(Roles = "ADMIN,ADMINISTRADOR")]
         public async Task<ActionResult<PacoteViagem>> CriarPacote([FromBody] CriarPacoteViagemDto criarPacoteDto)
         {
+            // Lembre-se de remover a propriedade VideoURL do seu DTO CriarPacoteViagemDto
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdClaim, out var idUsuarioLogado))
             {
@@ -123,15 +120,11 @@ namespace Decolei.net.Controllers
                 {
                     Titulo = criarPacoteDto.Titulo,
                     Descricao = criarPacoteDto.Descricao,
-                    // ALTERAÇÃO AQUI: Linha removida
-                    // ImagemURL = criarPacoteDto.ImagemURL, 
-                    VideoURL = criarPacoteDto.VideoURL,
                     Destino = criarPacoteDto.Destino,
                     Valor = criarPacoteDto.Valor,
                     DataInicio = criarPacoteDto.DataInicio,
                     DataFim = criarPacoteDto.DataFim,
                     UsuarioId = idUsuarioLogado,
-                    // A coleção de Imagens será populada em outro momento (via upload)
                 };
                 await _pacoteRepository.AdicionarAsync(pacote);
                 return CreatedAtAction(nameof(GetById), new { id = pacote.Id }, pacote);
@@ -143,13 +136,11 @@ namespace Decolei.net.Controllers
             }
         }
 
-        // 3. MÉTODO DE ATUALIZAÇÃO CORRIGIDO
-        //    - Removemos a lógica de atualização da "ImagemURL".
-        //    - Obs: Você precisará ajustar seu UpdatePacoteViagemDto para remover a propriedade ImagemURL.
         [HttpPut("{id}")]
         [Authorize(Roles = "ADMIN,ADMINISTRADOR")]
         public async Task<IActionResult> AtualizarPacote(int id, [FromBody] UpdatePacoteViagemDto dto)
         {
+            // Lembre-se de remover a propriedade VideoURL do seu DTO UpdatePacoteViagemDto
             var pacote = await _pacoteRepository.ObterPorIdAsync(id);
             if (pacote == null) return NotFound();
 
@@ -161,9 +152,6 @@ namespace Decolei.net.Controllers
 
             if (dto.Titulo != null) pacote.Titulo = dto.Titulo;
             if (dto.Descricao != null) pacote.Descricao = dto.Descricao;
-            // ALTERAÇÃO AQUI: Linha removida
-            // if (dto.ImagemURL != null) pacote.ImagemURL = dto.ImagemURL;
-            if (dto.VideoURL != null) pacote.VideoURL = dto.VideoURL;
             if (dto.Destino != null) pacote.Destino = dto.Destino;
             if (dto.Valor.HasValue) pacote.Valor = dto.Valor.Value;
             if (dto.DataInicio.HasValue) pacote.DataInicio = dto.DataInicio.Value;

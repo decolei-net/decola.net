@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Decolei.net.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class CriacaoInicialCompleta : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -129,8 +129,6 @@ namespace Decolei.net.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PacoteViagem_Titulo = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     PacoteViagem_Descricao = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    PacoteViagem_ImagemURL = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    PacoteViagem_VideoURL = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     PacoteViagem_Destino = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     PacoteViagem_Valor = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     PacoteViagem_DataInicio = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -173,6 +171,27 @@ namespace Decolei.net.Migrations
                         column: x => x.Usuario_Id,
                         principalTable: "Usuario",
                         principalColumn: "Usuario_Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Imagem",
+                columns: table => new
+                {
+                    Imagem_Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Imagem_Url = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Imagem_IsVideo = table.Column<bool>(type: "bit", nullable: false),
+                    PacoteViagem_Id = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Imagem", x => x.Imagem_Id);
+                    table.ForeignKey(
+                        name: "FK_Imagem_PacoteViagem_PacoteViagem_Id",
+                        column: x => x.PacoteViagem_Id,
+                        principalTable: "PacoteViagem",
+                        principalColumn: "PacoteViagem_Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -281,6 +300,11 @@ namespace Decolei.net.Migrations
                 column: "Usuario_Id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Imagem_PacoteViagem_Id",
+                table: "Imagem",
+                column: "PacoteViagem_Id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PacoteViagem_Usuario_Id",
                 table: "PacoteViagem",
                 column: "Usuario_Id");
@@ -365,6 +389,9 @@ namespace Decolei.net.Migrations
 
             migrationBuilder.DropTable(
                 name: "Avaliacao");
+
+            migrationBuilder.DropTable(
+                name: "Imagem");
 
             migrationBuilder.DropTable(
                 name: "Pagamento");

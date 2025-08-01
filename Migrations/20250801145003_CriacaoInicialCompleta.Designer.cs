@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Decolei.net.Migrations
 {
     [DbContext(typeof(DecoleiDbContext))]
-    [Migration("20250801033952_newSeedDATA")]
-    partial class newSeedDATA
+    [Migration("20250801145003_CriacaoInicialCompleta")]
+    partial class CriacaoInicialCompleta
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -77,6 +77,10 @@ namespace Decolei.net.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("IsVideo")
+                        .HasColumnType("bit")
+                        .HasColumnName("Imagem_IsVideo");
+
                     b.Property<int>("PacoteViagemId")
                         .HasColumnType("int")
                         .HasColumnName("PacoteViagem_Id");
@@ -134,11 +138,6 @@ namespace Decolei.net.Migrations
                     b.Property<decimal>("Valor")
                         .HasColumnType("decimal(10, 2)")
                         .HasColumnName("PacoteViagem_Valor");
-
-                    b.Property<string>("VideoURL")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("PacoteViagem_VideoURL");
 
                     b.HasKey("Id");
 

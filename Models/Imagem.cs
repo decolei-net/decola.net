@@ -11,6 +11,8 @@ namespace Decolei.net.Models
         // Caminho relativo da imagem, ex: "uploads/pacotes/imagem-1.jpg"
         public string Url { get; set; }
 
+        public bool IsVideo { get; set; } = false;
+
         // Chave estrangeira para o PacoteViagem
         public int PacoteViagemId { get; set; }
 

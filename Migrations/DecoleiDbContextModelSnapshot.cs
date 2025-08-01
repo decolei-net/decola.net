@@ -74,6 +74,10 @@ namespace Decolei.net.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("IsVideo")
+                        .HasColumnType("bit")
+                        .HasColumnName("Imagem_IsVideo");
+
                     b.Property<int>("PacoteViagemId")
                         .HasColumnType("int")
                         .HasColumnName("PacoteViagem_Id");
@@ -131,11 +135,6 @@ namespace Decolei.net.Migrations
                     b.Property<decimal>("Valor")
                         .HasColumnType("decimal(10, 2)")
                         .HasColumnName("PacoteViagem_Valor");
-
-                    b.Property<string>("VideoURL")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("PacoteViagem_VideoURL");
 
                     b.HasKey("Id");
 
