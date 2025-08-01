@@ -19,7 +19,9 @@ namespace Decolei.net.Repository
         {
             return _context.PacotesViagem
                 .Include(p => p.Reservas) // Inclui a lista de reservas do pacote
-                    .ThenInclude(r => r.Viajantes); // Para cada reserva, inclui os viajantes
+                    .ThenInclude(r => r.Viajantes) // Para cada reserva, inclui os viajantes
+                .Include(p => p.Avaliacoes) // Inclui as avaliações do pacote
+                    .ThenInclude(a => a.Usuario); // Para cada avaliação, inclui o usuário que fez a avaliação
         }
 
         public async Task<IEnumerable<PacoteViagem>> GetByFiltersAsync(string? destino, decimal? precoMin, decimal? precoMax, DateTime? dataInicio, DateTime? dataFim)

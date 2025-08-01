@@ -50,12 +50,9 @@ namespace Decolei.net.Controllers
                     a.Id,
                     a.Comentario,
                     a.Nota,
-                    // Adicione aqui o usuário da avaliação se o modelo Avaliacao.cs estiver corrigido
+                    UsuarioNome = a.Usuario?.NomeCompleto// Adicione aqui o usuário da avaliação se o modelo Avaliacao.cs estiver corrigido
                 }).ToList(),
 
-                // --- CORREÇÃO AQUI ---
-                // Em vez de retornar o objeto de reserva completo, criamos um novo objeto
-                // apenas com os campos que queremos, quebrando o ciclo.
                 Reservas = pacote.Reservas?.Select(r => new {
                     r.Id,
                     r.Usuario_Id,
@@ -108,13 +105,11 @@ namespace Decolei.net.Controllers
         [Authorize(Roles = "ADMIN,ADMINISTRADOR")]
         public async Task<ActionResult<PacoteViagem>> CriarPacote([FromBody] CriarPacoteViagemDto criarPacoteDto)
         {
-            // --- CÓDIGO ORIGINAL CORRETO PARA SEU PROJETO ---
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdClaim, out var idUsuarioLogado))
             {
                 return Unauthorized(new { erro = "Não foi possível identificar o usuário a partir do token." });
             }
-            // --- FIM DA CORREÇÃO ---
             try
             {
                 var pacote = new PacoteViagem
@@ -139,7 +134,6 @@ namespace Decolei.net.Controllers
             }
         }
 
-        // Métodos PUT e DELETE ficam como no seu original, que já devem funcionar corretamente agora.
         [HttpPut("{id}")]
         [Authorize(Roles = "ADMIN,ADMINISTRADOR")]
         public async Task<IActionResult> AtualizarPacote(int id, [FromBody] UpdatePacoteViagemDto dto)
