@@ -139,6 +139,7 @@ public class Program
 
         app.UseCors("AllowAll");
         app.UseRouting();
+        app.UseStaticFiles();
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();

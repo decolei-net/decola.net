@@ -18,15 +18,19 @@ namespace Decolei.net.Repository
         private IQueryable<PacoteViagem> GetPacotesComIncludes()
         {
             return _context.PacotesViagem
-                .Include(p => p.Reservas) // Inclui a lista de reservas do pacote
+                // ******** LINHA ADICIONADA AQUI ********
+                .Include(p => p.Imagens)        // Inclui a nova galeria de imagens.
+                .Include(p => p.Usuario)        // Boa prática: Inclui o criador do pacote.
+                .Include(p => p.Reservas)       // Inclui a lista de reservas do pacote
                     .ThenInclude(r => r.Viajantes) // Para cada reserva, inclui os viajantes
-                .Include(p => p.Avaliacoes) // Inclui as avaliações do pacote
-                    .ThenInclude(a => a.Usuario); // Para cada avaliação, inclui o usuário que fez a avaliação
+                .Include(p => p.Avaliacoes)     // Inclui as avaliações do pacote
+                    .ThenInclude(a => a.Usuario);  // Para cada avaliação, inclui o usuário.
         }
 
         public async Task<IEnumerable<PacoteViagem>> GetByFiltersAsync(string? destino, decimal? precoMin, decimal? precoMax, DateTime? dataInicio, DateTime? dataFim)
         {
-            var query = GetPacotesComIncludes(); // Usa a função auxiliar
+            // Nenhuma alteração aqui, já usa o método auxiliar
+            var query = GetPacotesComIncludes();
 
             if (!string.IsNullOrEmpty(destino))
             {
@@ -53,6 +57,7 @@ namespace Decolei.net.Repository
 
         public async Task<PacoteViagem?> ObterPorIdAsync(int id)
         {
+            // Nenhuma alteração aqui, já usa o método auxiliar
             return await GetPacotesComIncludes().FirstOrDefaultAsync(p => p.Id == id);
         }
 
@@ -74,9 +79,9 @@ namespace Decolei.net.Repository
             await _context.SaveChangesAsync();
         }
 
-        // Se a sua interface IPacoteRepository tiver o método ListarTodosAsync, adicione-o também.
         public async Task<IEnumerable<PacoteViagem>> ListarTodosAsync()
         {
+            // Nenhuma alteração aqui, já usa o método auxiliar
             return await GetPacotesComIncludes().ToListAsync();
         }
     }

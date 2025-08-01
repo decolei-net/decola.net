@@ -42,7 +42,8 @@ namespace Decolei.net.Data
             var adminUser = await userManager.FindByEmailAsync("admin@decolei.net");
             if (adminUser != null)
             {
-                await SeedPacotesAsync(context, adminUser.Id);
+                // *** ÚNICA PARTE ALTERADA ***
+                await SeedPacotesAsync(context, adminUser);
             }
         }
 
@@ -84,7 +85,8 @@ namespace Decolei.net.Data
             }
         }
 
-        private static async Task SeedPacotesAsync(DecoleiDbContext context, int adminUserId)
+        // ******** MÉTODO CORRIGIDO CONFORME SOLICITADO ********
+        private static async Task SeedPacotesAsync(DecoleiDbContext context, Usuario adminUser)
         {
             if (await context.PacotesViagem.AnyAsync())
             {
@@ -93,41 +95,41 @@ namespace Decolei.net.Data
 
             var pacotes = new List<PacoteViagem>
             {
+                // Pacote 1 com 3 imagens
                 new PacoteViagem
                 {
-                    Titulo = "Verão em Fernando de Noronha",
-                    Descricao = "Aproveite 7 dias no paraíso de Fernando de Noronha, com praias deslumbrantes e mergulho com golfinhos.",
-                    ImagemURL = "https://exemplo.com/noronha.jpg",
-                    VideoURL = "https://youtube.com/noronha",
-                    Destino = "Fernando de Noronha, PE",
-                    Valor = 4500.00m,
-                    DataInicio = new DateTime(2025, 11, 10),
-                    DataFim = new DateTime(2025, 11, 17),
-                    UsuarioId = adminUserId
-                },
-                new PacoteViagem
-                {
-                    Titulo = "Fim de Semana em Porto de Galinhas",
-                    Descricao = "Escapada de 3 dias para as piscinas naturais de Porto de Galinhas.",
-                    ImagemURL = "https://exemplo.com/porto.jpg",
-                    VideoURL = "https://youtube.com/porto",
-                    Destino = "Porto de Galinhas, PE",
-                    Valor = 1200.00m,
-                    DataInicio = new DateTime(2025, 9, 5),
-                    DataFim = new DateTime(2025, 9, 8),
-                    UsuarioId = adminUserId
-                },
-                new PacoteViagem
-                {
-                    Titulo = "Aventura na Chapada Diamantina",
-                    Descricao = "5 dias de trilhas, cachoeiras e paisagens incríveis na Bahia.",
-                    ImagemURL = "https://exemplo.com/chapada.jpg",
+                    Titulo = "Semana Mágica em Quioto",
+                    Descricao = "Explore os templos antigos, jardins zen e a cultura gueixa na antiga capital do Japão.",
                     VideoURL = "https://youtube.com/chapada",
-                    Destino = "Chapada Diamantina, BA",
-                    Valor = 2800.00m,
-                    DataInicio = new DateTime(2025, 10, 15),
-                    DataFim = new DateTime(2025, 10, 20),
-                    UsuarioId = adminUserId
+                    Destino = "Quioto, Japão",
+                    Valor = 9800.00m,
+                    DataInicio = new DateTime(2025, 10, 05),
+                    DataFim = new DateTime(2025, 10, 12),
+                    UsuarioId = adminUser.Id,
+                    Imagens = new List<Imagem>
+                    {
+                        new Imagem { Url = "uploads/pacotes/quioto-arashiyama.jpg" },
+                        new Imagem { Url = "uploads/pacotes/quioto-fushimi-inari.jpg" },
+                        new Imagem { Url = "uploads/pacotes/quioto-kinkaku-ji.jpg" }
+                    }
+                },
+                // Pacote 2 com 3 imagens
+                new PacoteViagem
+                {
+                    Titulo = "Aventura na Costa Amalfitana",
+                    Descricao = "Viagem de carro pelas vilas coloridas de Positano, Amalfi e Ravello, com vistas espetaculares do Mediterrâneo.",
+                    VideoURL = "https://youtube.com/noronha",
+                    Destino = "Costa Amalfitana, Itália",
+                    Valor = 7500.00m,
+                    DataInicio = new DateTime(2025, 09, 15),
+                    DataFim = new DateTime(2025, 09, 22),
+                    UsuarioId = adminUser.Id,
+                    Imagens = new List<Imagem>
+                    {
+                        new Imagem { Url = "uploads/pacotes/amalfi-coast-geral.jpg" },
+                        new Imagem { Url = "uploads/pacotes/amalfi-positano.jpg" },
+                        new Imagem { Url = "uploads/pacotes/amalfi-ravello.jpg" }
+                    }
                 }
             };
 
