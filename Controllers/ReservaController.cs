@@ -256,7 +256,9 @@ namespace Decolei.net.Controllers
                 {
                     Id = reserva.PacoteViagem.Id,
                     Titulo = reserva.PacoteViagem.Titulo,
-                    Destino = reserva.PacoteViagem.Destino
+                    Destino = reserva.PacoteViagem.Destino,
+                    DataInicio = (DateTime)reserva.PacoteViagem.DataInicio,
+                    DataFim = (DateTime)reserva.PacoteViagem.DataFim
                 } : null,
                 Usuario = reserva.Usuario != null ? new UsuarioReservaDto
                 {
