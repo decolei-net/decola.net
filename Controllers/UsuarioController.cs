@@ -475,5 +475,53 @@ namespace Decolei.net.Controllers
                 return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
             }
         }
+        // Adicione a nova rota DELETAR para excluir um usuário
+        [HttpDelete("admin/deletar/{id}")]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> DeletarUsuarioPorAdmin(int id)
+        {
+            // Valida se o ID na URL é válido.
+            if (id <= 0)
+            {
+                _logger.LogWarning("Tentativa de exclusão com ID de usuário inválido: {UserId}", id);
+                return BadRequest(new { erro = "ID de usuário inválido." });
+            }
+
+            // Obtém o ID do usuário logado a partir do token
+            var usuarioLogadoId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            // Regra de segurança: impede que um administrador se delete
+            if (usuarioLogadoId == id)
+            {
+                return StatusCode(403, new { erro = "Você não pode excluir seu próprio usuário." });
+            }
+
+            try
+            {
+                // Busca o usuário no banco de dados pelo ID
+                var usuario = await _userManager.FindByIdAsync(id.ToString());
+                if (usuario == null)
+                {
+                    _logger.LogWarning("Tentativa de exclusão de usuário não existente: {UserId}", id);
+                    return NotFound(new { erro = $"Usuário com ID {id} não encontrado." });
+                }
+
+                // Exclui o usuário do banco de dados usando o UserManager
+                var resultado = await _userManager.DeleteAsync(usuario);
+                if (!resultado.Succeeded)
+                {
+                    var erros = resultado.Errors.ToDictionary(e => e.Code, e => e.Description);
+                    return BadRequest(new { erro = "Falha ao excluir o usuário.", detalhes = erros });
+                }
+
+                _logger.LogInformation("Usuário com ID {UserId} foi excluído por um administrador.", id);
+                return NoContent(); 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ocorreu um erro inesperado ao excluir o usuário com ID {UserId}.", id);
+                return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
+            }
+        }
     }
 }
