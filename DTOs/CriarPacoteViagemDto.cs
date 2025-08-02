@@ -30,5 +30,8 @@ namespace Decolei.net.DTOs
 
         [Required(ErrorMessage = "A data de fim é obrigatória.")]
         public DateTime DataFim { get; set; }
+
+        [Required(ErrorMessage = "A quantidade de vagas é obrigatória.")]
+        public int QuantidadeVagas { get; set; }
     }
 }

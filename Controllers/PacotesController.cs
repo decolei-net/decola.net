@@ -125,6 +125,8 @@ namespace Decolei.net.Controllers
                     DataInicio = criarPacoteDto.DataInicio,
                     DataFim = criarPacoteDto.DataFim,
                     UsuarioId = idUsuarioLogado,
+                    QuantidadeVagas = criarPacoteDto.QuantidadeVagas,
+
                 };
                 await _pacoteRepository.AdicionarAsync(pacote);
                 return CreatedAtAction(nameof(GetById), new { id = pacote.Id }, pacote);
