@@ -357,5 +357,94 @@ namespace Decolei.net.Controllers
                 return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
             }
         }
+
+        [HttpPut("admin/atualizar/{id}")]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> AtualizarUsuarioPorAdmin(int id, [FromBody] AdminAtualizarUsuarioDto updateDto)
+        {
+            // Valida se o ID na URL é válido.
+            if (id <= 0)
+            {
+                _logger.LogWarning("Tentativa de atualização por admin com ID de usuário inválido: {UserId}", id);
+                return BadRequest(new { erro = "ID de usuário inválido." });
+            }
+
+            try
+            {
+                var usuario = await _userManager.FindByIdAsync(id.ToString());
+                if (usuario == null)
+                {
+                    _logger.LogWarning("Tentativa de atualização por admin de usuário não existente: {UserId}", id);
+                    return NotFound(new { erro = $"Usuário com ID {id} não encontrado." });
+                }
+
+                // 1. Atualiza as propriedades básicas do usuário se os dados forem fornecidos.
+                if (!string.IsNullOrEmpty(updateDto.NomeCompleto))
+                {
+                    usuario.NomeCompleto = updateDto.NomeCompleto;
+                }
+                if (!string.IsNullOrEmpty(updateDto.Telefone))
+                {
+                    usuario.PhoneNumber = updateDto.Telefone;
+                }
+                if (!string.IsNullOrEmpty(updateDto.Documento))
+                {
+                    usuario.Documento = updateDto.Documento;
+                }
+
+                // 2. Lógica para atualizar o perfil (Role) do usuário.
+                if (!string.IsNullOrEmpty(updateDto.Perfil))
+                {
+                    var novoPerfil = updateDto.Perfil.ToUpper();
+
+                    // Evita que um administrador mude o seu próprio perfil.
+                    var usuarioLogadoId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                    if (usuarioLogadoId == id && novoPerfil != "ADMIN")
+                    {
+                        return StatusCode(403, new { erro = "Um administrador não pode alterar o seu próprio perfil." });
+                    }
+
+                    // Verifica se o novo perfil é um papel válido.
+                    if (!await _roleManager.RoleExistsAsync(novoPerfil))
+                    {
+                        return BadRequest(new { erro = $"O perfil '{updateDto.Perfil}' não é um papel válido." });
+                    }
+
+                    var perfisAtuais = await _userManager.GetRolesAsync(usuario);
+                    var resultadoRemover = await _userManager.RemoveFromRolesAsync(usuario, perfisAtuais);
+
+                    if (!resultadoRemover.Succeeded)
+                    {
+                        var erros = resultadoRemover.Errors.ToDictionary(e => e.Code, e => e.Description);
+                        return BadRequest(new { erro = "Falha ao remover perfis antigos.", detalhes = erros });
+                    }
+
+                    var resultadoAdicionar = await _userManager.AddToRoleAsync(usuario, novoPerfil);
+                    if (!resultadoAdicionar.Succeeded)
+                    {
+                        var erros = resultadoAdicionar.Errors.ToDictionary(e => e.Code, e => e.Description);
+                        return BadRequest(new { erro = "Falha ao adicionar novo perfil.", detalhes = erros });
+                    }
+
+                    // Atualizando a propriedade 'Perfil' no modelo para consistência.
+                    usuario.Perfil = novoPerfil;
+                }
+
+                // 3. Salva todas as mudanças.
+                var resultadoUpdate = await _userManager.UpdateAsync(usuario);
+                if (!resultadoUpdate.Succeeded)
+                {
+                    var erros = resultadoUpdate.Errors.ToDictionary(e => e.Code, e => e.Description);
+                    return BadRequest(new { erro = "Falha ao atualizar dados do usuário.", detalhes = erros });
+                }
+
+                return Ok(new { mensagem = "Usuário atualizado com sucesso!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ocorreu um erro inesperado ao atualizar o usuário com ID {UserId} pelo admin.", id);
+                return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
+            }
+        }
     }
 }
