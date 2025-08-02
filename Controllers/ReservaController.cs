@@ -9,21 +9,20 @@ namespace Decolei.net.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // A autorização é exigida para todos os endpoints por padrão
+    [Authorize]
     public class ReservaController : ControllerBase
     {
         private readonly IReservaRepository _reservaRepository;
         private readonly IPacoteRepository _pacoteRepository;
-        private readonly ILogger<ReservaController> _logger; // INJEÇÃO DO LOGGER
+        private readonly ILogger<ReservaController> _logger;
 
         public ReservaController(IReservaRepository reservaRepository, IPacoteRepository pacoteRepository, ILogger<ReservaController> logger)
         {
             _reservaRepository = reservaRepository;
             _pacoteRepository = pacoteRepository;
-            _logger = logger; // ATRIBUIÇÃO DO LOGGER
+            _logger = logger;
         }
 
-        // GET: api/Reserva
         // Endpoint para ATENDENTE e ADMIN verem TODAS as reservas.
         [HttpGet]
         [Authorize(Roles = "ATENDENTE,ADMIN")]
@@ -32,7 +31,6 @@ namespace Decolei.net.Controllers
             try
             {
                 var reservas = await _reservaRepository.ObterTodasAsync();
-                // Mapeia a lista de Reserva para uma lista de ReservaDetalhesDto
                 var reservasDto = reservas.Select(r => MapearParaDto(r)).ToList();
                 return Ok(reservasDto);
             }
@@ -43,7 +41,6 @@ namespace Decolei.net.Controllers
             }
         }
 
-        // GET: api/Reserva/MinhasReservas
         // Endpoint para o CLIENTE logado ver apenas as SUAS reservas.
         [HttpGet("minhas-reservas")]
         public async Task<ActionResult<IEnumerable<ReservaDetalhesDto>>> GetMinhasReservas()
@@ -57,7 +54,6 @@ namespace Decolei.net.Controllers
             try
             {
                 var minhasReservas = await _reservaRepository.ObterPorUsuarioIdAsync(idUsuarioLogado);
-                // Mapeia a lista de Reserva para uma lista de ReservaDetalhesDto
                 var minhasReservasDto = minhasReservas.Select(r => MapearParaDto(r)).ToList();
                 return Ok(minhasReservasDto);
             }
@@ -68,7 +64,6 @@ namespace Decolei.net.Controllers
             }
         }
 
-        // GET: api/Reserva/{id}
         // Endpoint para buscar uma reserva específica pelo ID.
         [HttpGet("{id}")]
         public async Task<ActionResult<ReservaDetalhesDto>> GetById(int id)
@@ -91,10 +86,9 @@ namespace Decolei.net.Controllers
 
                 if (reserva.Usuario_Id != idUsuarioLogado && !User.IsInRole("ADMIN") && !User.IsInRole("ATENDENTE"))
                 {
-                    return Forbid(); // Proíbe o acesso se não for o dono ou um perfil autorizado
+                    return Forbid();
                 }
 
-                // Mapeia a entidade Reserva para o DTO e retorna
                 return Ok(MapearParaDto(reserva));
             }
             catch (Exception ex)
@@ -104,13 +98,10 @@ namespace Decolei.net.Controllers
             }
         }
 
-        // POST: api/Reserva
         // Endpoint para CRIAR uma nova reserva.
         [HttpPost]
         public async Task<IActionResult> CriarReserva([FromBody] CriarReservaDto criarReservaDto)
         {
-            // O [ApiController] já trata o `ModelState.IsValid`, retornando 400 se necessário.
-
             var idUsuarioLogadoString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(idUsuarioLogadoString, out var idUsuarioLogado))
             {
@@ -125,29 +116,16 @@ namespace Decolei.net.Controllers
                     return NotFound(new { erro = $"Pacote de viagem com ID {criarReservaDto.PacoteViagemId} não encontrado." });
                 }
 
-                // --- INÍCIO DA NOVA LÓGICA DE VERIFICAÇÃO DE VAGAS ---
-
-                // Calcula o número de viajantes para a nova reserva (incluindo o usuário logado)
                 var viajantesNestaReserva = 1 + (criarReservaDto.Viajantes?.Count ?? 0);
-
-                // Busca todas as reservas existentes para este pacote
                 var reservasDoPacote = await _reservaRepository.ObterPorPacoteIdAsync(criarReservaDto.PacoteViagemId);
-
-                // Calcula o total de vagas já ocupadas
                 var vagasOcupadas = reservasDoPacote.Sum(r => 1 + r.Viajantes.Count);
 
-                // Verifica se há vagas disponíveis
                 if ((vagasOcupadas + viajantesNestaReserva) > pacote.QuantidadeVagas)
                 {
                     return BadRequest(new { erro = "Não há vagas disponíveis para este pacote." });
                 }
 
-                // --- FIM DA NOVA LÓGICA DE VERIFICAÇÃO DE VAGAS ---
-
-
-                // Calcula o número total de pessoas da reserva, considera 1 como o usuário logado
-                var numeroTotalDePessoas = 1 + (criarReservaDto.Viajantes?.Count ?? 0);
-                var valorTotalCalculado = pacote.Valor * numeroTotalDePessoas;
+                var valorTotalCalculado = pacote.Valor * viajantesNestaReserva;
 
                 var reserva = new Reserva
                 {
@@ -173,10 +151,8 @@ namespace Decolei.net.Controllers
 
                 await _reservaRepository.AdicionarAsync(reserva);
 
-                // Busca a reserva completa para retornar os detalhes no DTO
                 var novaReserva = await _reservaRepository.ObterPorIdAsync(reserva.Id);
 
-                // CORREÇÃO: Retorna o DTO em vez da entidade para evitar o ciclo
                 return CreatedAtAction(nameof(GetById), new { id = novaReserva!.Id }, MapearParaDto(novaReserva!));
             }
             catch (Exception ex)
@@ -186,7 +162,56 @@ namespace Decolei.net.Controllers
             }
         }
 
-        // PUT: api/Reserva/{id}
+        // Endpoint para ATUALIZAR os viajantes de uma reserva PENDENTE.
+        [HttpPut("{id}/viajantes")]
+        [Authorize(Roles = "CLIENTE,ADMIN")]
+        public async Task<IActionResult> AtualizarViajantes(int id, [FromBody] List<ViajanteDto> novosViajantes)
+        {
+            var idUsuarioLogadoString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(idUsuarioLogadoString, out var idUsuarioLogado))
+            {
+                return Unauthorized(new { erro = "Token de usuário inválido." });
+            }
+
+            var reserva = await _reservaRepository.ObterPorIdAsync(id);
+            if (reserva == null) return NotFound(new { erro = "Reserva não encontrada." });
+            if (reserva.Usuario_Id != idUsuarioLogado && !User.IsInRole("ADMIN")) return Forbid();
+            if (reserva.Status?.ToUpper() != "PENDENTE") return BadRequest(new { erro = "Não é possível alterar uma reserva que não está mais pendente." });
+
+            try
+            {
+                var pacote = await _pacoteRepository.ObterPorIdAsync(reserva.PacoteViagem_Id);
+                if (pacote == null) return BadRequest(new { erro = "O pacote associado a esta reserva não foi encontrado." });
+
+                var viajantesNestaReserva = 1 + (novosViajantes?.Count ?? 0);
+                var reservasDoPacote = await _reservaRepository.ObterPorPacoteIdAsync(reserva.PacoteViagem_Id);
+                var vagasOcupadasPorOutros = reservasDoPacote.Where(r => r.Id != reserva.Id).Sum(r => 1 + r.Viajantes.Count);
+                if ((vagasOcupadasPorOutros + viajantesNestaReserva) > pacote.QuantidadeVagas)
+                {
+                    return BadRequest(new { erro = "Não há vagas disponíveis para adicionar estes viajantes." });
+                }
+
+                reserva.Viajantes.Clear();
+                if (novosViajantes != null)
+                {
+                    foreach (var viajanteDto in novosViajantes)
+                    {
+                        reserva.Viajantes.Add(new Viajante { Nome = viajanteDto.Nome, Documento = viajanteDto.Documento });
+                    }
+                }
+
+                reserva.ValorTotal = pacote.Valor * viajantesNestaReserva;
+                await _reservaRepository.AtualizarAsync(reserva);
+
+                return Ok(MapearParaDto(reserva));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Falha ao atualizar viajantes da reserva {ReservaId}", id);
+                return StatusCode(500, new { erro = "Erro interno ao atualizar os viajantes." });
+            }
+        }
+
         // Endpoint para ATUALIZAR o status de uma reserva.
         [HttpPut("{id}")]
         [Authorize(Roles = "ATENDENTE,ADMIN")]
@@ -208,16 +233,16 @@ namespace Decolei.net.Controllers
 
                 reserva.Status = updateReservaDto.Status.ToUpper();
                 await _reservaRepository.AtualizarAsync(reserva);
-                return NoContent(); // Este método está correto, não precisa de DTO.
+                return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ocorreu um erro inesperado ao atualizar a reserva com ID {ReservaId}.", id);
+                _logger.LogError(ex, "Ocorreu um erro ao atualizar a reserva com ID {ReservaId}.", id);
                 return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
             }
         }
 
-        // Método auxiliar privado para mapear a entidade Reserva para o DTO
+        // Método auxiliar privado para mapear a entidade Reserva para o DTO de retorno
         private ReservaDetalhesDto MapearParaDto(Reserva reserva)
         {
             return new ReservaDetalhesDto
@@ -231,7 +256,9 @@ namespace Decolei.net.Controllers
                 {
                     Id = reserva.PacoteViagem.Id,
                     Titulo = reserva.PacoteViagem.Titulo,
-                    Destino = reserva.PacoteViagem.Destino
+                    Destino = reserva.PacoteViagem.Destino,
+                    DataInicio = (DateTime)reserva.PacoteViagem.DataInicio,
+                    DataFim = (DateTime)reserva.PacoteViagem.DataFim
                 } : null,
                 Usuario = reserva.Usuario != null ? new UsuarioReservaDto
                 {

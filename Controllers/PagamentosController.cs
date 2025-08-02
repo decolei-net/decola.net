@@ -64,10 +64,11 @@ namespace Decolei.net.Controllers
             }
             catch (Exception ex)
             {
+                // Esta mudança é crucial para o diagnóstico
                 return StatusCode(500, new
                 {
-                    erro = "Erro interno ao processar o pagamento",
-                    detalhe = ex.InnerException?.Message ?? ex.Message
+                    erro = "Erro interno ao processar o pagamento. Veja os detalhes para a causa real.",
+                    detalhe = ex.ToString() // Use .ToString() para obter a exceção completa
                 });
             }
         }

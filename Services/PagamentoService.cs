@@ -34,14 +34,11 @@ namespace Decolei.net.Services
             {
                 throw new ArgumentException("Reserva não encontrada.");
             }
-
+            // ... (resto das suas validações, como permissão, valor, etc.)
             if (reserva.Usuario_Id != idUsuarioLogado)
             {
                 throw new ArgumentException("Você não tem permissão para pagar por esta reserva.");
             }
-
-            // LÓGICA INSERIDA: Validar se o valor do pagamento corresponde ao valor da reserva.
-            // Esta é a validação que você pediu para incluir.
             if (dto.Valor != reserva.ValorTotal)
             {
                 throw new ArgumentException($"O valor do pagamento (R$ {dto.Valor:F2}) não corresponde ao valor da reserva (R$ {reserva.ValorTotal:F2}).");
@@ -52,7 +49,7 @@ namespace Decolei.net.Services
                 throw new ArgumentException("Esta reserva já possui um pagamento aprovado.");
             }
 
-            // 1. Simula o gateway de pagamento com os dados recebidos
+            // 1. Simula o gateway de pagamento
             var gateway = new GatewayPagamentoService
             {
                 NomeCompleto = dto.NomeCompleto,
@@ -62,11 +59,9 @@ namespace Decolei.net.Services
                 Parcelas = dto.Parcelas,
                 NumeroCartaoMascarado = dto.NumeroCartao
             };
-
-            // Processa o pagamento (define o status de acordo com o método)
             gateway.ProcessarPagamento();
 
-            // 2. Cria o objeto de pagamento com os dados simulados
+            // 2. Cria o objeto de pagamento
             var pagamento = new Pagamento
             {
                 Reserva_Id = dto.ReservaId,
@@ -76,41 +71,38 @@ namespace Decolei.net.Services
                 Data = DateTime.Now
             };
 
-            // 3. Salva o pagamento no banco de dados
+            // 3. Informa ao EF Core para adicionar o novo pagamento
             await dbContext.Pagamentos.AddAsync(pagamento);
-            await dbContext.SaveChangesAsync();
 
-            // 4. Se o pagamento for aprovado de imediato, atualiza o status da reserva também
-            if (reserva != null)
+            // 4. Se o pagamento for aprovado, modifica a reserva que já está sendo rastreada
+            if (gateway.Metodo != MetodoPagamento.Boleto && gateway.Status == "APROVADO")
             {
-                // Apenas atualiza imediatamente se NÃO for boleto
-                if (gateway.Metodo != MetodoPagamento.Boleto && gateway.Status == "APROVADO")
-                {
-                    reserva.Status = "APROVADO";
-                    reserva.Reserva_StatusPagamento = "APROVADO";
-                    dbContext.Reservas.Update(reserva);
-                }
+                reserva.Status = "CONFIRMADA"; // Ou o status que você desejar
+                reserva.Reserva_StatusPagamento = "APROVADO";
+                // NÃO É NECESSÁRIO chamar dbContext.Reservas.Update(reserva);
             }
 
+            // 5. Salva TODAS as alterações (o novo Pagamento e a atualização da Reserva) em UMA ÚNICA TRANSAÇÃO
             await dbContext.SaveChangesAsync();
 
-            // 5. Envia e-mail imediato com o status atual (aprovado ou pendente)
-            var emailInicial = $@"
-                                <html>
-                                <body style='font-family: Arial, sans-serif;'>
-                                    <h2>Olá {dto.NomeCompleto},</h2>
-                                    <p>Recebemos sua solicitação de pagamento e ela foi processada com o seguinte status:</p>
-                                    <p><strong>Status:</strong> {gateway.Status}</p>
-                                    <p><strong>Número da transação:</strong> {gateway.IdTransacao}</p>
-                                    <br />
-                                    <p>Agradecemos por escolher a <strong>Decolei.NET</strong>!</p>
-                                    <p>Se tiver qualquer dúvida, estamos à disposição.</p>
-                                    <br />
-                                    <p>Atenciosamente,</p>
-                                    <p><em>Equipe Decolei.NET</em></p>
-                                </body>
-                                </html>";
+            // 6. Lógica de envio de e-mail e agendamento (seu código aqui está perfeito)
+            // ... (seu código de envio de email e Task.Run para o boleto) ...
 
+            var emailInicial = $@"
+                        <html>
+                        <body style='font-family: Arial, sans-serif;'>
+                            <h2>Olá {dto.NomeCompleto},</h2>
+                            <p>Recebemos sua solicitação de pagamento e ela foi processada com o seguinte status:</p>
+                            <p><strong>Status:</strong> {gateway.Status}</p>
+                            <p><strong>Número da transação:</strong> {gateway.IdTransacao}</p>
+                            <br />
+                            <p>Agradecemos por escolher a <strong>Decolei.NET</strong>!</p>
+                            <p>Se tiver qualquer dúvida, estamos à disposição.</p>
+                            <br />
+                            <p>Atenciosamente,</p>
+                            <p><em>Equipe Decolei.NET</em></p>
+                        </body>
+                        </html>";
             await emailService.EnviarEmailAsync(dto.Email, "Confirmação de Pagamento", emailInicial);
 
             // 6. Se for boleto, agenda a aprovação automática após 60 segundos
