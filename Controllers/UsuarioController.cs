@@ -293,13 +293,40 @@ namespace Decolei.net.Controllers
             return Ok(new { mensagem = "Logout realizado com sucesso!" });
         }
 
+        // Rota para listar usuários, agora com filtro de pesquisa.
         [HttpGet]
         [Authorize(Roles = "ADMIN,ATENDENTE")]
-        public async Task<IActionResult> ListarUsuarios()
+        public async Task<IActionResult> ListarUsuarios(
+            [FromQuery] string? nome,
+            [FromQuery] string? email,
+            [FromQuery] string? documento)
         {
             try
             {
-                var usuarios = await _userManager.Users.ToListAsync();
+                var query = _userManager.Users.AsQueryable();
+
+                // 1. Aplica o filtro de Nome se o parâmetro for fornecido
+                if (!string.IsNullOrEmpty(nome))
+                {
+                    var filtroNome = nome.ToLower().Trim();
+                    query = query.Where(u => u.NomeCompleto != null && u.NomeCompleto.ToLower().Contains(filtroNome));
+                }
+
+                // 2. Aplica o filtro de Email se o parâmetro for fornecido
+                if (!string.IsNullOrEmpty(email))
+                {
+                    var filtroEmail = email.ToLower().Trim();
+                    query = query.Where(u => u.Email != null && u.Email.ToLower().Contains(filtroEmail));
+                }
+
+                // 3. Aplica o filtro de Documento se o parâmetro for fornecido
+                if (!string.IsNullOrEmpty(documento))
+                {
+                    var filtroDocumento = documento.ToLower().Trim();
+                    query = query.Where(u => u.Documento != null && u.Documento.ToLower().Contains(filtroDocumento));
+                }
+
+                var usuarios = await query.ToListAsync();
                 var usuariosDto = new List<UsuarioDto>();
 
                 foreach (var usuario in usuarios)
@@ -315,6 +342,7 @@ namespace Decolei.net.Controllers
                         Perfil = roles.FirstOrDefault() ?? "Sem Perfil"
                     });
                 }
+
                 return Ok(usuariosDto);
             }
             catch (Exception ex)
@@ -323,6 +351,7 @@ namespace Decolei.net.Controllers
                 return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
             }
         }
+
 
         [HttpGet("{id:int}")]
         [Authorize(Roles = "ADMIN,ATENDENTE")]
