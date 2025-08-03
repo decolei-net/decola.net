@@ -12,6 +12,7 @@ namespace Decolei.net.Controllers
     [Route("api/avaliacoes")]
     public class AvaliacaoController : ControllerBase
     {
+
         private readonly DecoleiDbContext _context;
 
         public AvaliacaoController(DecoleiDbContext context)
@@ -20,73 +21,64 @@ namespace Decolei.net.Controllers
         }
 
         [HttpPost]
-
+        [Authorize(Roles = "CLIENTE")]
         public async Task<IActionResult> AvaliarPacote([FromBody] AvaliacaoRequest request)
-
         {
 
             if (request.Nota < 1 || request.Nota > 5)
-
                 return BadRequest("Nota deve estar entre 1 e 5.");
 
             var pacote = await _context.PacotesViagem
-
                 .FirstOrDefaultAsync(p => p.Id == request.PacoteViagem_Id);
 
             if (pacote == null)
-
                 return NotFound("Pacote de viagem não encontrado.");
 
             if (DateTime.Now < pacote.DataFim)
-
                 return BadRequest("Você só pode avaliar esse pacote após o término da viagem.");
 
             var avaliacaoExistente = await _context.Avaliacoes
-
                 .AnyAsync(a => a.Usuario_Id == request.Usuario_Id && a.PacoteViagem_Id == request.PacoteViagem_Id);
 
             if (avaliacaoExistente)
-
                 return BadRequest("Você já avaliou este pacote anteriormente.");
 
-            var reservaValida = await _context.Reservas
 
+            var reservaValida = await _context.Reservas
                 .AnyAsync(r =>
                     r.Usuario_Id == request.Usuario_Id &&
                     r.PacoteViagem_Id == request.PacoteViagem_Id &&
                     r.Status.ToLower() == "aprovado");
 
             if (!reservaValida)
-
                 return BadRequest("Você só pode avaliar pacotes que você reservou e estão confirmadas.");
 
             var avaliacao = new Avaliacao
-
             {
                 Usuario_Id = request.Usuario_Id,
                 PacoteViagem_Id = request.PacoteViagem_Id,
                 Nota = request.Nota,
                 Comentario = request.Comentario,
                 Data = DateTime.Now,
-                Aprovada = false
+                Aprovada = false // Por padrão, toda nova avaliação chega como pendente.
             };
 
             _context.Avaliacoes.Add(avaliacao);
             await _context.SaveChangesAsync();
-            return Ok(new { message = "Avaliação registrada com sucesso." });
 
+            return Ok(new { message = "Avaliação registrada com sucesso." });
         }
 
-
-
         [HttpGet("pacote/{id}")]
+        [Authorize(Roles = "CLIENTE")]
         public async Task<IActionResult> AvaliacoesAprovadasPorPacote(int id)
         {
+
             var avaliacoes = await _context.Avaliacoes
                 .Where(a => a.PacoteViagem_Id == id && a.Aprovada == true)
                 .Select(a => new {
                     a.Id,
-                    Usuario = a.Usuario.NomeCompleto,
+                    Usuario = a.Usuario.NomeCompleto, // Inclui o nome completo do usuário.
                     a.Nota,
                     a.Comentario,
                     a.Data
@@ -97,15 +89,36 @@ namespace Decolei.net.Controllers
         }
 
 
+        [HttpGet("aprovadas")]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> ListarAvaliacoesAprovadas()
+        {
+            var aprovadas = await _context.Avaliacoes
+                .Where(a => a.Aprovada == true)
+                .Select(a => new
+                {
+                    a.Id,
+                    Usuario = a.Usuario.NomeCompleto,
+                    Pacote = a.PacoteViagem.Titulo,
+                    a.Nota,
+                    a.Comentario,
+                    a.Data
+                })
+                .ToListAsync();
+
+            return Ok(aprovadas);
+        }
+
         [HttpGet("pendentes")]
+        [Authorize(Roles = "ADMIN")] 
         public async Task<IActionResult> ListarAvaliacoesPendentes()
         {
             var pendentes = await _context.Avaliacoes
                 .Where(a => a.Aprovada == false)
                 .Select(a => new {
                     a.Id,
-                    Usuario = a.Usuario.NomeCompleto,
-                    Pacote = a.PacoteViagem.Titulo,
+                    Usuario = a.Usuario.NomeCompleto, 
+                    Pacote = a.PacoteViagem.Titulo, 
                     a.Nota,
                     a.Comentario,
                     a.Data
@@ -116,6 +129,7 @@ namespace Decolei.net.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "ADMIN")] 
         public async Task<IActionResult> AtualizarStatusAvaliacao(int id, [FromBody] AvaliacaoAcaoDto dto)
         {
             var avaliacao = await _context.Avaliacoes.FindAsync(id);
@@ -135,6 +149,7 @@ namespace Decolei.net.Controllers
             }
             else if (dto.Acao?.ToLower() == "rejeitar")
             {
+                // Se a ação for "rejeitar", remove a avaliação do banco de dados.
                 _context.Avaliacoes.Remove(avaliacao);
                 await _context.SaveChangesAsync();
 
@@ -145,33 +160,31 @@ namespace Decolei.net.Controllers
         }
 
         [HttpGet("minhas-avaliacoes")]
-        [Authorize]
+        [Authorize(Roles = "CLIENTE")]
         public async Task<IActionResult> GetMinhasAvaliacoes()
         {
-            // 1. Pega o ID do usuário diretamente do token JWT. É seguro e confiável.
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
             {
                 return Unauthorized("Não foi possível identificar o usuário a partir do token.");
             }
 
-            // 2. Busca no banco de dados todas as avaliações que pertencem a este usuário.
             var avaliacoesDoUsuario = await _context.Avaliacoes
                 .Where(a => a.Usuario_Id == userId)
-                .Include(a => a.PacoteViagem)
+                .Include(a => a.PacoteViagem) 
                 .Select(a => new {
                     Id = a.Id,
                     Nota = a.Nota,
                     Comentario = a.Comentario,
                     Data = a.Data,
-                    Aprovada = a.Aprovada, // Inclui o status para o usuário saber se foi moderada
+                    Aprovada = a.Aprovada, 
                     Pacote = new
                     {
                         Id = a.PacoteViagem.Id,
                         Titulo = a.PacoteViagem.Titulo
                     }
                 })
-                .OrderByDescending(a => a.Data) // Mostra as mais recentes primeiro
+                .OrderByDescending(a => a.Data) 
                 .ToListAsync();
 
             return Ok(avaliacoesDoUsuario);
