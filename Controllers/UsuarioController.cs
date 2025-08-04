@@ -22,11 +22,11 @@ namespace Decolei.net.Controllers
         private readonly RoleManager<IdentityRole<int>> _roleManager;
         private readonly IConfiguration _configuration;
         private readonly EmailService _emailService;
-        private readonly ILogger<UsuarioController> _logger; // <<< ADICIONADO PARA LOGGING
+        private readonly ILogger<UsuarioController> _logger;
 
         public UsuarioController(
             UserManager<Usuario> userManager, SignInManager<Usuario> signInManager, RoleManager<IdentityRole<int>> roleManager,
-            IConfiguration configuration, EmailService emailService, ILogger<UsuarioController> logger) // <<< LOGGER INJETADO
+            IConfiguration configuration, EmailService emailService, ILogger<UsuarioController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -198,13 +198,10 @@ namespace Decolei.net.Controllers
         [HttpPost("recuperar-senha")]
         public async Task<IActionResult> RecuperarSenha([FromBody] RecuperarSenhaDto dto)
         {
-            // O fluxo de recuperação de senha intencionalmente não revela muitos detalhes, por segurança.
-            // Ele não falhará ruidosamente para o cliente, apenas registrará o erro internamente.
             var usuario = await _userManager.FindByEmailAsync(dto.Email);
             if (usuario == null)
             {
                 _logger.LogWarning("Tentativa de recuperação de senha para um e-mail não existente: {Email}", dto.Email);
-                // Mesmo se não encontrar, retorna uma mensagem genérica por segurança.
                 return Ok(new { mensagem = "Se um usuário com este e-mail existir, um link de recuperação foi enviado." });
             }
 
@@ -220,19 +217,14 @@ namespace Decolei.net.Controllers
                             <p>Olá,</p>
                             <p>Recebemos uma solicitação para redefinir a senha da sua conta no <strong>Decolei.NET</strong>.</p>
                             <p>Clique no botão abaixo para criar uma nova senha:</p>
-
                             <p style='margin: 20px 0;'>
                               <a href='{link}' style='background-color: #007bff; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px;'>Redefinir Senha</a>
                             </p>
-
                             <hr style='margin: 30px 0;' />
-
                             <h3>Token de redefinição</h3>
                             <p>Se preferir, copie o token abaixo e use diretamente no Swagger ou em outro cliente:</p>
                             <p style='font-size: 18px; font-weight: bold; color: #555;'>{token}</p>
-
                             <p><strong>Email associado:</strong> {dto.Email}</p>
-
                             <br />
                             <p style='font-size: 14px; color: #999;'>Se você não solicitou essa redefinição, pode ignorar este e-mail com segurança.</p>
                             <br />
@@ -250,8 +242,6 @@ namespace Decolei.net.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Falha ao enviar e-mail de recuperação de senha para o usuário {Email}.", dto.Email);
-                // Criticamente, mesmo se o envio do e-mail falhar, não informamos isso ao cliente.
-                // A falha é registrada, mas a resposta é a mesma.
                 return Ok(new { mensagem = "Se um usuário com este e-mail existir, um link de recuperação foi enviado." });
             }
         }
@@ -264,7 +254,6 @@ namespace Decolei.net.Controllers
                 var usuario = await _userManager.FindByEmailAsync(dto.Email);
                 if (usuario == null)
                 {
-                    // Evitamos dizer "usuário não encontrado" e retornamos um erro genérico.
                     return BadRequest(new { erro = "Não foi possível redefinir a senha. O link pode ser inválido ou ter expirado." });
                 }
 
@@ -288,12 +277,88 @@ namespace Decolei.net.Controllers
         [Authorize]
         public async Task<IActionResult> Logout()
         {
-            // SignOutAsync é uma operação segura que geralmente não lança exceções.
             await _signInManager.SignOutAsync();
             return Ok(new { mensagem = "Logout realizado com sucesso!" });
         }
 
-        // Rota para listar usuários, agora com filtro de pesquisa.
+        [HttpPut("meu-perfil")]
+        [Authorize(Roles = "CLIENTE,ADMIN,ATENDENTE")]
+        public async Task<IActionResult> AtualizarMeuPerfil([FromBody] AtualizarUsuarioDto updateDto)
+        {
+            try
+            {
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
+                {
+                    return Unauthorized(new { erro = "Token de usuário inválido." });
+                }
+
+                var usuario = await _userManager.FindByIdAsync(userIdString);
+                if (usuario == null)
+                {
+                    return NotFound(new { erro = "Usuário não encontrado." });
+                }
+
+                if (!string.IsNullOrEmpty(updateDto.NomeCompleto))
+                {
+                    usuario.NomeCompleto = updateDto.NomeCompleto;
+                }
+
+                if (!string.IsNullOrEmpty(updateDto.Telefone))
+                {
+                    usuario.PhoneNumber = updateDto.Telefone;
+                }
+
+                // Lógica para atualizar o email
+                if (!string.IsNullOrEmpty(updateDto.Email) && usuario.Email != updateDto.Email)
+                {
+                    var usuarioComNovoEmail = await _userManager.FindByEmailAsync(updateDto.Email);
+                    if (usuarioComNovoEmail != null && usuarioComNovoEmail.Id != usuario.Id)
+                    {
+                        return BadRequest(new { erro = "Este e-mail já está em uso por outra conta." });
+                    }
+
+                    var resultadoEmail = await _userManager.SetEmailAsync(usuario, updateDto.Email);
+                    if (!resultadoEmail.Succeeded)
+                    {
+                        var erros = resultadoEmail.Errors.ToDictionary(e => e.Code, e => e.Description);
+                        return BadRequest(new { erro = "Falha ao atualizar o e-mail.", detalhes = erros });
+                    }
+
+                    await _userManager.SetUserNameAsync(usuario, updateDto.Email);
+                }
+
+                var resultado = await _userManager.UpdateAsync(usuario);
+                if (!resultado.Succeeded)
+                {
+                    var erros = resultado.Errors.ToDictionary(e => e.Code, e => e.Description);
+                    return BadRequest(new { erro = "Falha ao atualizar o perfil.", detalhes = erros });
+                }
+
+                _logger.LogInformation("Perfil do usuário com ID {UserId} foi atualizado por ele mesmo.", userId);
+
+                return Ok(new
+                {
+                    mensagem = "Perfil atualizado com sucesso!",
+                    usuarioAtualizado = new UsuarioDto
+                    {
+                        Id = usuario.Id,
+                        NomeCompleto = usuario.NomeCompleto,
+                        Email = usuario.Email,
+                        Telefone = usuario.PhoneNumber,
+                        Documento = usuario.Documento,
+                        Perfil = usuario.Perfil
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ocorreu um erro inesperado ao atualizar o perfil do usuário.");
+                return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
+            }
+        }
+
+
         [HttpGet]
         [Authorize(Roles = "ADMIN,ATENDENTE")]
         public async Task<IActionResult> ListarUsuarios(
@@ -305,21 +370,18 @@ namespace Decolei.net.Controllers
             {
                 var query = _userManager.Users.AsQueryable();
 
-                // 1. Aplica o filtro de Nome se o parâmetro for fornecido
                 if (!string.IsNullOrEmpty(nome))
                 {
                     var filtroNome = nome.ToLower().Trim();
                     query = query.Where(u => u.NomeCompleto != null && u.NomeCompleto.ToLower().Contains(filtroNome));
                 }
 
-                // 2. Aplica o filtro de Email se o parâmetro for fornecido
                 if (!string.IsNullOrEmpty(email))
                 {
                     var filtroEmail = email.ToLower().Trim();
                     query = query.Where(u => u.Email != null && u.Email.ToLower().Contains(filtroEmail));
                 }
 
-                // 3. Aplica o filtro de Documento se o parâmetro for fornecido
                 if (!string.IsNullOrEmpty(documento))
                 {
                     var filtroDocumento = documento.ToLower().Trim();
@@ -391,7 +453,6 @@ namespace Decolei.net.Controllers
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> AtualizarUsuarioPorAdmin(int id, [FromBody] AdminAtualizarUsuarioDto updateDto)
         {
-            // Valida se o ID na URL é válido.
             if (id <= 0)
             {
                 _logger.LogWarning("Tentativa de atualização por admin com ID de usuário inválido: {UserId}", id);
@@ -407,7 +468,6 @@ namespace Decolei.net.Controllers
                     return NotFound(new { erro = $"Usuário com ID {id} não encontrado." });
                 }
 
-                // 1. Atualiza as propriedades básicas do usuário se os dados forem fornecidos.
                 if (!string.IsNullOrEmpty(updateDto.NomeCompleto))
                 {
                     usuario.NomeCompleto = updateDto.NomeCompleto;
@@ -421,19 +481,16 @@ namespace Decolei.net.Controllers
                     usuario.Documento = updateDto.Documento;
                 }
 
-                // 2. Lógica para atualizar o perfil (Role) do usuário.
                 if (!string.IsNullOrEmpty(updateDto.Perfil))
                 {
                     var novoPerfil = updateDto.Perfil.ToUpper();
 
-                    // Evita que um administrador mude o seu próprio perfil.
                     var usuarioLogadoId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
                     if (usuarioLogadoId == id && novoPerfil != "ADMIN")
                     {
                         return StatusCode(403, new { erro = "Um administrador não pode alterar o seu próprio perfil." });
                     }
 
-                    // Verifica se o novo perfil é um papel válido.
                     if (!await _roleManager.RoleExistsAsync(novoPerfil))
                     {
                         return BadRequest(new { erro = $"O perfil '{updateDto.Perfil}' não é um papel válido." });
@@ -455,11 +512,9 @@ namespace Decolei.net.Controllers
                         return BadRequest(new { erro = "Falha ao adicionar novo perfil.", detalhes = erros });
                     }
 
-                    // Atualizando a propriedade 'Perfil' no modelo para consistência.
                     usuario.Perfil = novoPerfil;
                 }
 
-                // 3. Salva todas as mudanças.
                 var resultadoUpdate = await _userManager.UpdateAsync(usuario);
                 if (!resultadoUpdate.Succeeded)
                 {
@@ -475,22 +530,19 @@ namespace Decolei.net.Controllers
                 return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
             }
         }
-        // Adicione a nova rota DELETAR para excluir um usuário
+
         [HttpDelete("admin/deletar/{id}")]
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> DeletarUsuarioPorAdmin(int id)
         {
-            // Valida se o ID na URL é válido.
             if (id <= 0)
             {
                 _logger.LogWarning("Tentativa de exclusão com ID de usuário inválido: {UserId}", id);
                 return BadRequest(new { erro = "ID de usuário inválido." });
             }
 
-            // Obtém o ID do usuário logado a partir do token
             var usuarioLogadoId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            // Regra de segurança: impede que um administrador se delete
             if (usuarioLogadoId == id)
             {
                 return StatusCode(403, new { erro = "Você não pode excluir seu próprio usuário." });
@@ -498,7 +550,6 @@ namespace Decolei.net.Controllers
 
             try
             {
-                // Busca o usuário no banco de dados pelo ID
                 var usuario = await _userManager.FindByIdAsync(id.ToString());
                 if (usuario == null)
                 {
@@ -506,7 +557,6 @@ namespace Decolei.net.Controllers
                     return NotFound(new { erro = $"Usuário com ID {id} não encontrado." });
                 }
 
-                // Exclui o usuário do banco de dados usando o UserManager
                 var resultado = await _userManager.DeleteAsync(usuario);
                 if (!resultado.Succeeded)
                 {
@@ -515,7 +565,7 @@ namespace Decolei.net.Controllers
                 }
 
                 _logger.LogInformation("Usuário com ID {UserId} foi excluído por um administrador.", id);
-                return NoContent(); 
+                return NoContent();
             }
             catch (Exception ex)
             {

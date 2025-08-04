@@ -162,7 +162,6 @@ namespace Decolei.net.Data
                     new Imagem { Url = "uploads/pacotes/balneario-1.jpg", IsVideo = false },
                     new Imagem { Url = "uploads/pacotes/balneario-2.jpg", IsVideo = false },
                     new Imagem { Url = "uploads/pacotes/balneario-3.jpg", IsVideo = false },
-                    new Imagem { Url = "uploads/pacotes/balneario-4.jpg", IsVideo = false }
                 }
             };
 
@@ -381,7 +380,7 @@ namespace Decolei.net.Data
                 Data = new DateTime(2025, 6, 22),
                 Aprovada = true
             };
-
+            
             // ***** A CORREÇÃO ESTÁ AQUI *****
             // Adicionando TODOS os pacotes criados ao contexto
             context.PacotesViagem.AddRange(
