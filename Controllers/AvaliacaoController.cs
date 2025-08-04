@@ -12,7 +12,6 @@ namespace Decolei.net.Controllers
     [Route("api/avaliacoes")]
     public class AvaliacaoController : ControllerBase
     {
-
         private readonly DecoleiDbContext _context;
 
         public AvaliacaoController(DecoleiDbContext context)
@@ -24,7 +23,6 @@ namespace Decolei.net.Controllers
         [Authorize(Roles = "CLIENTE")]
         public async Task<IActionResult> AvaliarPacote([FromBody] AvaliacaoRequest request)
         {
-
             if (request.Nota < 1 || request.Nota > 5)
                 return BadRequest("Nota deve estar entre 1 e 5.");
 
@@ -70,15 +68,15 @@ namespace Decolei.net.Controllers
         }
 
         [HttpGet("pacote/{id}")]
-        [Authorize(Roles = "CLIENTE")]
         public async Task<IActionResult> AvaliacoesAprovadasPorPacote(int id)
         {
-
             var avaliacoes = await _context.Avaliacoes
                 .Where(a => a.PacoteViagem_Id == id && a.Aprovada == true)
-                .Select(a => new {
+                .Include(a => a.Usuario) // Adicionado para carregar o nome do usuário
+                .Select(a => new
+                {
                     a.Id,
-                    Usuario = a.Usuario.NomeCompleto, // Inclui o nome completo do usuário.
+                    Usuario = a.Usuario.NomeCompleto,
                     a.Nota,
                     a.Comentario,
                     a.Data
@@ -88,13 +86,22 @@ namespace Decolei.net.Controllers
             return Ok(avaliacoes);
         }
 
-
         [HttpGet("aprovadas")]
         [Authorize(Roles = "ADMIN")]
-        public async Task<IActionResult> ListarAvaliacoesAprovadas()
+        public async Task<IActionResult> ListarAvaliacoesAprovadas([FromQuery] string? destino)
         {
-            var aprovadas = await _context.Avaliacoes
-                .Where(a => a.Aprovada == true)
+            var query = _context.Avaliacoes
+                .Include(a => a.Usuario) // Adicionado para carregar os dados do usuário
+                .Include(a => a.PacoteViagem) // Adicionado para carregar os dados do pacote
+                .Where(a => a.Aprovada == true);
+
+            // Se o parâmetro 'destino' for fornecido, adiciona o filtro à consulta
+            if (!string.IsNullOrEmpty(destino))
+            {
+                query = query.Where(a => a.PacoteViagem.Destino.Contains(destino));
+            }
+
+            var aprovadas = await query
                 .Select(a => new
                 {
                     a.Id,
@@ -110,15 +117,26 @@ namespace Decolei.net.Controllers
         }
 
         [HttpGet("pendentes")]
-        [Authorize(Roles = "ADMIN")] 
-        public async Task<IActionResult> ListarAvaliacoesPendentes()
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> ListarAvaliacoesPendentes([FromQuery] string? destino)
         {
-            var pendentes = await _context.Avaliacoes
-                .Where(a => a.Aprovada == false)
-                .Select(a => new {
+            var query = _context.Avaliacoes
+                .Include(a => a.Usuario) // Adicionado para carregar os dados do usuário
+                .Include(a => a.PacoteViagem) // Adicionado para carregar os dados do pacote
+                .Where(a => a.Aprovada == false);
+
+            // Se o parâmetro 'destino' for fornecido, adiciona o filtro à consulta
+            if (!string.IsNullOrEmpty(destino))
+            {
+                query = query.Where(a => a.PacoteViagem.Destino.Contains(destino));
+            }
+
+            var pendentes = await query
+                .Select(a => new
+                {
                     a.Id,
-                    Usuario = a.Usuario.NomeCompleto, 
-                    Pacote = a.PacoteViagem.Titulo, 
+                    Usuario = a.Usuario.NomeCompleto,
+                    Pacote = a.PacoteViagem.Titulo,
                     a.Nota,
                     a.Comentario,
                     a.Data
@@ -129,7 +147,7 @@ namespace Decolei.net.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "ADMIN")] 
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> AtualizarStatusAvaliacao(int id, [FromBody] AvaliacaoAcaoDto dto)
         {
             var avaliacao = await _context.Avaliacoes.FindAsync(id);
@@ -171,20 +189,21 @@ namespace Decolei.net.Controllers
 
             var avaliacoesDoUsuario = await _context.Avaliacoes
                 .Where(a => a.Usuario_Id == userId)
-                .Include(a => a.PacoteViagem) 
-                .Select(a => new {
+                .Include(a => a.PacoteViagem)
+                .Select(a => new
+                {
                     Id = a.Id,
                     Nota = a.Nota,
                     Comentario = a.Comentario,
                     Data = a.Data,
-                    Aprovada = a.Aprovada, 
+                    Aprovada = a.Aprovada,
                     Pacote = new
                     {
                         Id = a.PacoteViagem.Id,
                         Titulo = a.PacoteViagem.Titulo
                     }
                 })
-                .OrderByDescending(a => a.Data) 
+                .OrderByDescending(a => a.Data)
                 .ToListAsync();
 
             return Ok(avaliacoesDoUsuario);
