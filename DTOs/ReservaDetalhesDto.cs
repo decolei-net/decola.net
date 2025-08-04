@@ -10,6 +10,7 @@ namespace Decolei.net.DTOs
         public decimal? ValorTotal { get; set; }
         public string? Status { get; set; }
         public string? Numero { get; set; }
+        public string? Reserva_StatusPagamento { get; set; }
 
         // Propriedades que antes causavam o ciclo, agora usando DTOs
         public PacoteReservaDto? PacoteViagem { get; set; }
