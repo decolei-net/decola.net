@@ -252,6 +252,7 @@ namespace Decolei.net.Controllers
                 ValorTotal = reserva.ValorTotal,
                 Status = reserva.Status,
                 Numero = reserva.Numero,
+                Reserva_StatusPagamento = reserva.Reserva_StatusPagamento,
                 PacoteViagem = reserva.PacoteViagem != null ? new PacoteReservaDto
                 {
                     Id = reserva.PacoteViagem.Id,
