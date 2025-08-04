@@ -10,6 +10,7 @@ using Decolei.net.Services;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Decolei.net.Data;
 
 namespace Decolei.net.Controllers
 {
@@ -23,10 +24,16 @@ namespace Decolei.net.Controllers
         private readonly IConfiguration _configuration;
         private readonly EmailService _emailService;
         private readonly ILogger<UsuarioController> _logger;
+        private readonly DecoleiDbContext _context;
 
         public UsuarioController(
-            UserManager<Usuario> userManager, SignInManager<Usuario> signInManager, RoleManager<IdentityRole<int>> roleManager,
-            IConfiguration configuration, EmailService emailService, ILogger<UsuarioController> logger)
+            UserManager<Usuario> userManager,
+            SignInManager<Usuario> signInManager,
+            RoleManager<IdentityRole<int>> roleManager,
+            IConfiguration configuration,
+            EmailService emailService,
+            ILogger<UsuarioController> logger,
+            DecoleiDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -34,6 +41,7 @@ namespace Decolei.net.Controllers
             _configuration = configuration;
             _emailService = emailService;
             _logger = logger;
+            _context = context;
         }
 
         [HttpPost("registrar")]
@@ -269,6 +277,49 @@ namespace Decolei.net.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Ocorreu um erro inesperado ao redefinir a senha do usuário {Email}.", dto.Email);
+                return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
+            }
+        }
+
+        // NOVO ENDPOINT DE ALTERAÇÃO DE SENHA
+        [HttpPost("alterar-senha")]
+        [Authorize]
+        public async Task<IActionResult> AlterarSenha([FromBody] AlterarSenhaDto dto)
+        {
+            try
+            {
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdString))
+                {
+                    return Unauthorized(new { erro = "Token de usuário inválido." });
+                }
+
+                var usuario = await _userManager.FindByIdAsync(userIdString);
+                if (usuario == null)
+                {
+                    return NotFound(new { erro = "Usuário não encontrado." });
+                }
+
+                // Verifica a senha atual antes de permitir a alteração
+                var resultado = await _userManager.ChangePasswordAsync(usuario, dto.SenhaAtual, dto.NovaSenha);
+
+                if (!resultado.Succeeded)
+                {
+                    var erros = resultado.Errors.ToDictionary(e => e.Code, e => e.Description);
+                    // O erro de senha incorreta geralmente é "PasswordMismatch"
+                    if (erros.ContainsKey("PasswordMismatch"))
+                    {
+                        return BadRequest(new { erro = "A senha atual está incorreta." });
+                    }
+                    return BadRequest(new { erro = "Falha ao alterar a senha.", detalhes = erros });
+                }
+
+                _logger.LogInformation("Senha do usuário com ID {UserId} foi alterada com sucesso.", usuario.Id);
+                return Ok(new { mensagem = "Senha alterada com sucesso!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ocorreu um erro inesperado ao alterar a senha do usuário.");
                 return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
             }
         }
@@ -571,6 +622,44 @@ namespace Decolei.net.Controllers
             {
                 _logger.LogError(ex, "Ocorreu um erro inesperado ao excluir o usuário com ID {UserId}.", id);
                 return StatusCode(500, new { erro = "Ocorreu um erro interno no servidor." });
+            }
+        }
+
+        [HttpGet("meu-perfil")]
+        [Authorize]
+        public async Task<ActionResult<MeuPerfilDto>> GetMeuPerfil()
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized("Token inválido");
+                }
+
+                // O UserManager já tem métodos para buscar por ID.
+                var usuario = await _userManager.FindByIdAsync(userId);
+                if (usuario == null)
+                {
+                    return NotFound("Usuário não encontrado");
+                }
+
+                var perfis = await _userManager.GetRolesAsync(usuario);
+                var perfilDto = new MeuPerfilDto
+                {
+                    Id = usuario.Id,
+                    NomeCompleto = usuario.NomeCompleto,
+                    Email = usuario.Email,
+                    Telefone = usuario.PhoneNumber,
+                    Documento = usuario.Documento,
+                    Role = perfis.FirstOrDefault() ?? "Sem Perfil"
+                };
+
+                return Ok(perfilDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro interno do servidor" });
             }
         }
     }
