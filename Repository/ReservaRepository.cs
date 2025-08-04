@@ -26,6 +26,7 @@ namespace Decolei.net.Repository
                     .Where(r => r.Usuario_Id == usuarioId)
                     .Include(r => r.Usuario)
                     .Include(r => r.PacoteViagem)
+                    .ThenInclude(p => p.Imagens)
                     .Include(r => r.Viajantes)
                     .OrderByDescending(r => r.Data)
                     .ToListAsync();

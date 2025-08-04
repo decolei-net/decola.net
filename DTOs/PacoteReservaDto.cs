@@ -7,6 +7,7 @@
         public string? Destino { get; set; }
         public DateTime DataInicio { get; set; }
         public DateTime DataFim { get; set; }
+        public ICollection<ImagemDto> Imagens { get; set; } = new List<ImagemDto>();
 
     }
 }

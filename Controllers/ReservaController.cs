@@ -259,7 +259,12 @@ namespace Decolei.net.Controllers
                     Titulo = reserva.PacoteViagem.Titulo,
                     Destino = reserva.PacoteViagem.Destino,
                     DataInicio = (DateTime)reserva.PacoteViagem.DataInicio,
-                    DataFim = (DateTime)reserva.PacoteViagem.DataFim
+                    DataFim = (DateTime)reserva.PacoteViagem.DataFim,
+                    Imagens = reserva.PacoteViagem.Imagens.Select(img => new ImagemDto
+                    {
+                        Url = img.Url,
+                        IsVideo = img.IsVideo
+                    }).ToList()
                 } : null,
                 Usuario = reserva.Usuario != null ? new UsuarioReservaDto
                 {
