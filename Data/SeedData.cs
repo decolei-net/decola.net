@@ -83,6 +83,7 @@ namespace Decolei.net.Data
                 DataInicio = new DateTime(2025, 07, 30),
                 DataFim = new DateTime(2025, 08, 03),
                 UsuarioId = adminUser.Id,
+                QuantidadeVagas = 30, // Adicionei um valor padrão
                 Imagens = new List<Imagem>
                 {
                     new Imagem { Url = "uploads/pacotes/maceio-1.jpg", IsVideo = false },
@@ -100,6 +101,7 @@ namespace Decolei.net.Data
                 DataInicio = new DateTime(2025, 08, 01),
                 DataFim = new DateTime(2025, 08, 03),
                 UsuarioId = adminUser.Id,
+                QuantidadeVagas = 40,
                 Imagens = new List<Imagem>
                 {
                     new Imagem { Url = "uploads/pacotes/salvador-1.jpg", IsVideo = false },
@@ -117,6 +119,7 @@ namespace Decolei.net.Data
                 DataInicio = new DateTime(2025, 08, 09),
                 DataFim = new DateTime(2025, 08, 15),
                 UsuarioId = adminUser.Id,
+                QuantidadeVagas = 20,
                 Imagens = new List<Imagem>
                 {
                     new Imagem { Url = "uploads/pacotes/noronha-1.jpg", IsVideo = false },
@@ -134,6 +137,7 @@ namespace Decolei.net.Data
                 DataInicio = new DateTime(2025, 08, 30),
                 DataFim = new DateTime(2025, 09, 07),
                 UsuarioId = adminUser.Id,
+                QuantidadeVagas = 50,
                 Imagens = new List<Imagem>
                 {
                     new Imagem { Url = "uploads/pacotes/joaopessoa-1.jpg", IsVideo = false },
@@ -146,12 +150,13 @@ namespace Decolei.net.Data
             var pacoteBalneario = new PacoteViagem
             {
                 Titulo = "Dubai Brasileira",
-                Descricao = "  Também conhecida como a \"Dubai Brasileira\", é um destino turístico popular no litoral norte de Santa Catarina, famoso por suas praias, vida noturna agitada e arranha-céus imponentes. ",
+                Descricao = "  Também conhecida como a \"Dubai Brasileira\", é um destino turístico popular no litoral norte de Santa Catarina, famoso por suas praias, vida noturna agitada e arranha-céus imponentes. ",
                 Destino = "Balneário Camboriú, Santa Catarina",
                 Valor = 5100.00m,
                 DataInicio = new DateTime(2025, 08, 30),
                 DataFim = new DateTime(2025, 09, 07),
                 UsuarioId = adminUser.Id,
+                QuantidadeVagas = 60,
                 Imagens = new List<Imagem>
                 {
                     new Imagem { Url = "uploads/pacotes/balneario-1.jpg", IsVideo = false },
@@ -170,11 +175,12 @@ namespace Decolei.net.Data
                 DataInicio = new DateTime(2025, 10, 10),
                 DataFim = new DateTime(2025, 10, 15),
                 UsuarioId = adminUser.Id,
+                QuantidadeVagas = 100,
                 Imagens = new List<Imagem>
-    {
+                {
                     new Imagem { Url = "uploads/pacotes/saopaulo-1.jpg", IsVideo = false },
                     new Imagem { Url = "uploads/pacotes/saopaulo-2.jpg", IsVideo = false }
-    }
+                }
             };
 
             var pacoteRio = new PacoteViagem
@@ -186,13 +192,14 @@ namespace Decolei.net.Data
                 DataInicio = new DateTime(2025, 11, 5),
                 DataFim = new DateTime(2025, 11, 10),
                 UsuarioId = adminUser.Id,
+                QuantidadeVagas = 80,
                 Imagens = new List<Imagem>
-    {
+                {
                     new Imagem { Url = "uploads/pacotes/rio-1.jpg", IsVideo = false },
                     new Imagem { Url = "uploads/pacotes/rio-2.jpg", IsVideo = false },
                     new Imagem { Url = "uploads/pacotes/rio-3.jpg", IsVideo = false },
                     new Imagem { Url = "uploads/pacotes/rio-4.jpg", IsVideo = false }
-    }
+                }
             };
 
             var pacoteBeloHorizonte = new PacoteViagem
@@ -204,11 +211,12 @@ namespace Decolei.net.Data
                 DataInicio = new DateTime(2025, 12, 1),
                 DataFim = new DateTime(2025, 12, 6),
                 UsuarioId = adminUser.Id,
+                QuantidadeVagas = 45,
                 Imagens = new List<Imagem>
-    {
+                {
                     new Imagem { Url = "uploads/pacotes/bh-1.jpg", IsVideo = false },
                     new Imagem { Url = "uploads/pacotes/bh-2.jpg", IsVideo = false }
-    }
+                }
             };
 
             var pacoteFortaleza = new PacoteViagem
@@ -220,14 +228,14 @@ namespace Decolei.net.Data
                 DataInicio = new DateTime(2025, 10, 20),
                 DataFim = new DateTime(2025, 10, 25),
                 UsuarioId = adminUser.Id,
+                QuantidadeVagas = 55,
                 Imagens = new List<Imagem>
-    {
+                {
                     new Imagem { Url = "uploads/pacotes/fortaleza-1.jpg", IsVideo = false },
                     new Imagem { Url = "uploads/pacotes/fortaleza-2.jpg", IsVideo = false },
                     new Imagem { Url = "uploads/pacotes/fortaleza-3.jpg", IsVideo = false }
-    }
+                }
             };
-
 
             var pacoteAmalfi = new PacoteViagem
             {
@@ -238,6 +246,7 @@ namespace Decolei.net.Data
                 DataInicio = new DateTime(2025, 9, 15),
                 DataFim = new DateTime(2025, 9, 22),
                 UsuarioId = adminUser.Id,
+                QuantidadeVagas = 25,
                 Imagens = new List<Imagem>
                 {
                     new Imagem { Url = "uploads/pacotes/amalfi-coast-geral.jpg", IsVideo = false },
@@ -255,6 +264,7 @@ namespace Decolei.net.Data
                 DataInicio = new DateTime(2025, 9, 20),
                 DataFim = new DateTime(2025, 9, 25),
                 UsuarioId = adminUser.Id,
+                QuantidadeVagas = 70,
                 Imagens = new List<Imagem>
                 {
                     new Imagem { Url = "uploads/pacotes/buenos-1.jpg", IsVideo = false },
@@ -273,11 +283,12 @@ namespace Decolei.net.Data
                 DataInicio = new DateTime(2025, 11, 15),
                 DataFim = new DateTime(2025, 11, 20),
                 UsuarioId = adminUser.Id,
+                QuantidadeVagas = 50,
                 Imagens = new List<Imagem>
-    {
+                {
                     new Imagem { Url = "uploads/pacotes/natal-1.jpg", IsVideo = false },
                     new Imagem { Url = "uploads/pacotes/natal-2.jpg", IsVideo = false },
-    }
+                }
             };
 
             var pacoteMaragogi = new PacoteViagem
@@ -289,12 +300,13 @@ namespace Decolei.net.Data
                 DataInicio = new DateTime(2025, 12, 10),
                 DataFim = new DateTime(2025, 12, 15),
                 UsuarioId = adminUser.Id,
+                QuantidadeVagas = 35,
                 Imagens = new List<Imagem>
-    {
+                {
                     new Imagem { Url = "uploads/pacotes/maragogi-1.jpg", IsVideo = false },
                     new Imagem { Url = "uploads/pacotes/maragogi-2.jpg", IsVideo = false },
                     new Imagem { Url = "uploads/pacotes/maragogi-3.jpg", IsVideo = false }
-    }
+                }
             };
 
             var pacoteQuioto = new PacoteViagem
@@ -306,10 +318,11 @@ namespace Decolei.net.Data
                 DataInicio = new DateTime(2025, 10, 05),
                 DataFim = new DateTime(2025, 10, 12),
                 UsuarioId = adminUser.Id,
+                QuantidadeVagas = 25,
                 Imagens = new List<Imagem>
                 {
                     new Imagem { Url = "uploads/pacotes/quioto-arashiyama.jpg", IsVideo = false },
-                    new Imagem { Url = "https://www.youtube.com/embed/aNC3UOYOejI?si=UCXT6BMqvSefHarj", IsVideo = true },
+                    new Imagem { Url = "https://www.youtube.com/embed/VIDEO_ID_AQUI", IsVideo = true },
                     new Imagem { Url = "uploads/pacotes/quioto-fushimi-inari.jpg", IsVideo = false },
                     new Imagem { Url = "uploads/pacotes/quioto-kinkaku-ji.jpg", IsVideo = false }
                 }
@@ -324,13 +337,28 @@ namespace Decolei.net.Data
                 DataInicio = new DateTime(2025, 6, 12),
                 DataFim = new DateTime(2025, 6, 19),
                 UsuarioId = adminUser.Id,
+                QuantidadeVagas = 50,
                 Imagens = new List<Imagem>
                 {
                     new Imagem { Url = "uploads/pacotes/gramado-rua-torta.jpg", IsVideo = false },
-                    new Imagem { Url = "https://www.youtube.com/embed/8Qghrljp9q0?si=5z7Jjngbsl8MTzo5", IsVideo = true }, // VÍDEO DE GRAMADO
+                    new Imagem { Url = "https://www.youtube.com/embed/VIDEO_ID_AQUI", IsVideo = true },
                     new Imagem { Url = "uploads/pacotes/gramado-lago-negro.jpg", IsVideo = false },
                 }
             };
+
+            // Adicionando uma reserva para Quioto para teste
+            var reservaQuioto = new Reserva
+            {
+                PacoteViagem = pacoteQuioto,
+                Usuario = clienteUser,
+                Data = new DateTime(2025, 8, 1),
+                ValorTotal = pacoteQuioto.Valor,
+                Status = "CONFIRMADA",
+                Numero = Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper(),
+                Viajantes = new List<Viajante> { new Viajante { Nome = clienteUser.NomeCompleto, Documento = clienteUser.Documento } },
+                Pagamentos = new List<Pagamento> { new Pagamento { Forma = "PIX", Status = "Confirmado", Data = new DateTime(2025, 8, 1) } }
+            };
+
 
             var reservaGramado = new Reserva
             {
@@ -338,7 +366,7 @@ namespace Decolei.net.Data
                 Usuario = clienteUser,
                 Data = new DateTime(2025, 5, 20),
                 ValorTotal = pacoteGramado.Valor,
-                Status = "Finalizada",
+                Status = "CONCLUIDA", // Status que permite avaliação
                 Numero = Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper(),
                 Viajantes = new List<Viajante> { new Viajante { Nome = clienteUser.NomeCompleto, Documento = clienteUser.Documento } },
                 Pagamentos = new List<Pagamento> { new Pagamento { Forma = "PIX", Status = "Confirmado", Data = new DateTime(2025, 5, 20) } }
@@ -354,8 +382,17 @@ namespace Decolei.net.Data
                 Aprovada = true
             };
 
-            context.PacotesViagem.AddRange(pacoteQuioto, pacoteAmalfi, pacoteGramado);
-            context.Reservas.Add(reservaGramado);
+            // ***** A CORREÇÃO ESTÁ AQUI *****
+            // Adicionando TODOS os pacotes criados ao contexto
+            context.PacotesViagem.AddRange(
+                pacoteMaceio, pacoteSalvador, pacoteNoronha, pacoteJoaoPessoa,
+                pacoteBalneario, pacoteSaoPaulo, pacoteRio, pacoteBeloHorizonte,
+                pacoteFortaleza, pacoteAmalfi, pacoteArgentina, pacoteNatal,
+                pacoteMaragogi, pacoteQuioto, pacoteGramado
+            );
+
+            // Adicionando as reservas e avaliações de exemplo
+            context.Reservas.AddRange(reservaGramado, reservaQuioto);
             context.Avaliacoes.Add(avaliacaoGramado);
 
             await context.SaveChangesAsync();
