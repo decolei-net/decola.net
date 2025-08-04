@@ -74,6 +74,57 @@ namespace Decolei.net.Data
                 return;
             }
 
+            var pacoteMaceio = new PacoteViagem
+            {
+                Titulo = "O paraíso alagoano te espera de braços abertos",
+                Descricao = " Um destino turístico encantador com suas praias paradisíacas, cultura rica e culinária saborosa. ",
+                Destino = "Maceió, Alagoas",
+                Valor = 3800.00m,
+                DataInicio = new DateTime(2025, 07, 30),
+                DataFim = new DateTime(2025, 08, 03),
+                UsuarioId = adminUser.Id,
+                Imagens = new List<Imagem>
+                {
+                    new Imagem { Url = "uploads/pacotes/maceio-1.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/maceio-2.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/maceio-3.jpg", IsVideo = false }
+                }
+            };
+
+            var pacoteSalvador = new PacoteViagem
+            {
+                Titulo = "Descobrindo Salvador: Roteiros para todos os gostos",
+                Descricao = " Um dos destinos mais intensos do Brasil. Repleta de história, cultura, tradições, cores e sabores, a cidade é um convite a curtir cada minuto. ",
+                Destino = "Salvador, Bahia",
+                Valor = 4600.00m,
+                DataInicio = new DateTime(2025, 08, 01),
+                DataFim = new DateTime(2025, 08, 03),
+                UsuarioId = adminUser.Id,
+                Imagens = new List<Imagem>
+                {
+                    new Imagem { Url = "uploads/pacotes/salvador-1.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/salvador-2.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/salvador-3.jpg", IsVideo = false }
+                }
+            };
+
+            var pacoteNoronha = new PacoteViagem
+            {
+                Titulo = "Noronha: O paraíso das águas cristalinas",
+                Descricao = " a ilha é reconhecida como um dos melhores pontos de mergulho do mundo e a Baía do Sancho foi eleita a Melhor Praia do Mundo por diversas vezes pelo TripAdvisor. ",
+                Destino = "Fernando de Noronha, Pernambuco",
+                Valor = 9100.00m,
+                DataInicio = new DateTime(2025, 08, 09),
+                DataFim = new DateTime(2025, 08, 15),
+                UsuarioId = adminUser.Id,
+                Imagens = new List<Imagem>
+                {
+                    new Imagem { Url = "uploads/pacotes/noronha-1.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/noronha-2.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/noronha-3.jpg", IsVideo = false }
+                }
+            };
+
             var pacoteQuioto = new PacoteViagem
             {
                 Titulo = "Semana Mágica em Quioto",
