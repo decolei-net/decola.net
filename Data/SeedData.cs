@@ -111,7 +111,7 @@ namespace Decolei.net.Data
             var pacoteNoronha = new PacoteViagem
             {
                 Titulo = "Noronha: O paraíso das águas cristalinas",
-                Descricao = " a ilha é reconhecida como um dos melhores pontos de mergulho do mundo e a Baía do Sancho foi eleita a Melhor Praia do Mundo por diversas vezes pelo TripAdvisor. ",
+                Descricao = " A ilha é reconhecida como um dos melhores pontos de mergulho do mundo e a Baía do Sancho foi eleita a Melhor Praia do Mundo por diversas vezes pelo TripAdvisor. ",
                 Destino = "Fernando de Noronha, Pernambuco",
                 Valor = 9100.00m,
                 DataInicio = new DateTime(2025, 08, 09),
@@ -125,23 +125,109 @@ namespace Decolei.net.Data
                 }
             };
 
-            var pacoteQuioto = new PacoteViagem
+            var pacoteJoaoPessoa = new PacoteViagem
             {
-                Titulo = "Semana Mágica em Quioto",
-                Descricao = "Explore os templos antigos, jardins zen e a cultura gueixa na antiga capital do Japão.",
-                Destino = "Quioto, Japão",
-                Valor = 9800.00m,
-                DataInicio = new DateTime(2025, 10, 05),
-                DataFim = new DateTime(2025, 10, 12),
+                Titulo = "João Pessoa, mais que uma cidade, uma experiência",
+                Descricao = " João Pessoa tem ganhado destaque internacional, sendo apontada como o 3º lugar com maior aumento na procura entre destinos de todo o mundo ",
+                Destino = "João Pessoa, Paraíba",
+                Valor = 3000.00m,
+                DataInicio = new DateTime(2025, 08, 30),
+                DataFim = new DateTime(2025, 09, 07),
                 UsuarioId = adminUser.Id,
                 Imagens = new List<Imagem>
                 {
-                    new Imagem { Url = "uploads/pacotes/quioto-arashiyama.jpg", IsVideo = false },
-                    new Imagem { Url = "https://www.youtube.com/embed/aNC3UOYOejI?si=UCXT6BMqvSefHarj", IsVideo = true }, // VÍDEO DE QUIOTO
-                    new Imagem { Url = "uploads/pacotes/quioto-fushimi-inari.jpg", IsVideo = false },
-                    new Imagem { Url = "uploads/pacotes/quioto-kinkaku-ji.jpg", IsVideo = false }
+                    new Imagem { Url = "uploads/pacotes/joaopessoa-1.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/joaopessoa-2.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/joaopessoa-3.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/joaopessoa-4.jpg", IsVideo = false }
                 }
             };
+
+            var pacoteBalneario = new PacoteViagem
+            {
+                Titulo = "Dubai Brasileira",
+                Descricao = "  Também conhecida como a \"Dubai Brasileira\", é um destino turístico popular no litoral norte de Santa Catarina, famoso por suas praias, vida noturna agitada e arranha-céus imponentes. ",
+                Destino = "Balneário Camboriú, Santa Catarina",
+                Valor = 5100.00m,
+                DataInicio = new DateTime(2025, 08, 30),
+                DataFim = new DateTime(2025, 09, 07),
+                UsuarioId = adminUser.Id,
+                Imagens = new List<Imagem>
+                {
+                    new Imagem { Url = "uploads/pacotes/balneario-1.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/balneario-2.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/balneario-3.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/balneario-4.jpg", IsVideo = false }
+                }
+            };
+
+            var pacoteSaoPaulo = new PacoteViagem
+            {
+                Titulo = "A Metrópole que Nunca Dorme",
+                Descricao = "São Paulo é o coração financeiro do Brasil, repleta de arranha-céus, centros culturais, gastronomia premiada e vida noturna intensa. Ideal para quem busca cultura, arte urbana e experiências cosmopolitas.",
+                Destino = "São Paulo, Brasil",
+                Valor = 9500.00m,
+                DataInicio = new DateTime(2025, 10, 10),
+                DataFim = new DateTime(2025, 10, 15),
+                UsuarioId = adminUser.Id,
+                Imagens = new List<Imagem>
+    {
+                    new Imagem { Url = "uploads/pacotes/saopaulo-1.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/saopaulo-2.jpg", IsVideo = false }
+    }
+            };
+
+            var pacoteRio = new PacoteViagem
+            {
+                Titulo = "Cidade Maravilhosa",
+                Descricao = "O Rio de Janeiro encanta com suas paisagens deslumbrantes, praias icônicas como Copacabana e Ipanema, além do Cristo Redentor e do Pão de Açúcar. Uma mistura perfeita de natureza, cultura e alegria carioca.",
+                Destino = "Rio de Janeiro, Brasil",
+                Valor = 11000.00m,
+                DataInicio = new DateTime(2025, 11, 5),
+                DataFim = new DateTime(2025, 11, 10),
+                UsuarioId = adminUser.Id,
+                Imagens = new List<Imagem>
+    {
+                    new Imagem { Url = "uploads/pacotes/rio-1.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/rio-2.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/rio-3.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/rio-4.jpg", IsVideo = false }
+    }
+            };
+
+            var pacoteBeloHorizonte = new PacoteViagem
+            {
+                Titulo = "Cultura e Sabores das Gerais",
+                Descricao = "Belo Horizonte une o charme das montanhas com a rica culinária mineira e um forte cenário artístico e musical. Ideal para quem busca tradição, hospitalidade e gastronomia de excelência.",
+                Destino = "Belo Horizonte, Minas Gerais",
+                Valor = 8900.00m,
+                DataInicio = new DateTime(2025, 12, 1),
+                DataFim = new DateTime(2025, 12, 6),
+                UsuarioId = adminUser.Id,
+                Imagens = new List<Imagem>
+    {
+                    new Imagem { Url = "uploads/pacotes/bh-1.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/bh-2.jpg", IsVideo = false }
+    }
+            };
+
+            var pacoteFortaleza = new PacoteViagem
+            {
+                Titulo = "Sol, Mar e Cultura Cearense",
+                Descricao = "Fortaleza é famosa por suas belas praias, como a Praia do Futuro, e uma vibrante vida cultural. Uma cidade acolhedora, com culinária marcante e um clima ensolarado o ano inteiro.",
+                Destino = "Fortaleza, Ceará",
+                Valor = 9800.00m,
+                DataInicio = new DateTime(2025, 10, 20),
+                DataFim = new DateTime(2025, 10, 25),
+                UsuarioId = adminUser.Id,
+                Imagens = new List<Imagem>
+    {
+                    new Imagem { Url = "uploads/pacotes/fortaleza-1.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/fortaleza-2.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/fortaleza-3.jpg", IsVideo = false }
+    }
+            };
+
 
             var pacoteAmalfi = new PacoteViagem
             {
@@ -160,11 +246,80 @@ namespace Decolei.net.Data
                 }
             };
 
+            var pacoteArgentina = new PacoteViagem
+            {
+                Titulo = " A Paris da América do Sul",
+                Descricao = "Uma cidade vibrante e cosmopolita, conhecida como a \"Paris da América do Sul\" por sua arquitetura europeia e rica vida cultural. A cidade oferece uma mistura única de história, arte, tango e gastronomia, com diversos bairros cheios de personalidade. ",
+                Destino = "Buenos Aires, Argentina",
+                Valor = 12000.00m,
+                DataInicio = new DateTime(2025, 9, 20),
+                DataFim = new DateTime(2025, 9, 25),
+                UsuarioId = adminUser.Id,
+                Imagens = new List<Imagem>
+                {
+                    new Imagem { Url = "uploads/pacotes/buenos-1.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/buenos-2.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/buenos-3.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/buenos-4.jpg", IsVideo = false }
+                }
+            };
+
+            var pacoteNatal = new PacoteViagem
+            {
+                Titulo = "Paraíso nas Dunas",
+                Descricao = "Natal encanta com suas dunas douradas, praias de águas mornas e o famoso passeio de buggy. Um destino perfeito para relaxar, curtir o sol e se encantar com as belezas do Nordeste.",
+                Destino = "Natal, Rio Grande do Norte",
+                Valor = 9300.00m,
+                DataInicio = new DateTime(2025, 11, 15),
+                DataFim = new DateTime(2025, 11, 20),
+                UsuarioId = adminUser.Id,
+                Imagens = new List<Imagem>
+    {
+                    new Imagem { Url = "uploads/pacotes/natal-1.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/natal-2.jpg", IsVideo = false },
+    }
+            };
+
+            var pacoteMaragogi = new PacoteViagem
+            {
+                Titulo = "O Caribe Brasileiro",
+                Descricao = "Maragogi é conhecido por suas piscinas naturais de águas cristalinas e recifes de corais. Ideal para quem busca tranquilidade, mergulho e um visual paradisíaco.",
+                Destino = "Maragogi, Alagoas",
+                Valor = 10500.00m,
+                DataInicio = new DateTime(2025, 12, 10),
+                DataFim = new DateTime(2025, 12, 15),
+                UsuarioId = adminUser.Id,
+                Imagens = new List<Imagem>
+    {
+                    new Imagem { Url = "uploads/pacotes/maragogi-1.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/maragogi-2.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/maragogi-3.jpg", IsVideo = false }
+    }
+            };
+
+            var pacoteQuioto = new PacoteViagem
+            {
+                Titulo = "Semana Mágica em Quioto",
+                Descricao = "Explore os templos antigos, jardins zen e a cultura gueixa na antiga capital do Japão.",
+                Destino = "Quioto, Japão",
+                Valor = 9800.00m,
+                DataInicio = new DateTime(2025, 10, 05),
+                DataFim = new DateTime(2025, 10, 12),
+                UsuarioId = adminUser.Id,
+                Imagens = new List<Imagem>
+                {
+                    new Imagem { Url = "uploads/pacotes/quioto-arashiyama.jpg", IsVideo = false },
+                    new Imagem { Url = "https://www.youtube.com/embed/aNC3UOYOejI?si=UCXT6BMqvSefHarj", IsVideo = true },
+                    new Imagem { Url = "uploads/pacotes/quioto-fushimi-inari.jpg", IsVideo = false },
+                    new Imagem { Url = "uploads/pacotes/quioto-kinkaku-ji.jpg", IsVideo = false }
+                }
+            };
+
             var pacoteGramado = new PacoteViagem
             {
                 Titulo = "Inverno Mágico em Gramado",
                 Descricao = "Curta o charme europeu da Serra Gaúcha, com fondues, vinhos e paisagens de tirar o fôlego.",
-                Destino = "Gramado, RS",
+                Destino = "Gramado, Rio Grande do Sul",
                 Valor = 2500.00m,
                 DataInicio = new DateTime(2025, 6, 12),
                 DataFim = new DateTime(2025, 6, 19),
