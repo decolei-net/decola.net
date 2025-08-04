@@ -41,15 +41,22 @@ namespace Decolei.net.Controllers
             if (avaliacaoExistente)
                 return BadRequest("Você já avaliou este pacote anteriormente.");
 
+            // ***** A CORREÇÃO ESTÁ AQUI *****
+            // Definimos quais status de reserva permitem uma avaliação.
+            var statusValidosParaAvaliacao = new[] { "confirmada", "concluida" };
 
             var reservaValida = await _context.Reservas
                 .AnyAsync(r =>
                     r.Usuario_Id == request.Usuario_Id &&
                     r.PacoteViagem_Id == request.PacoteViagem_Id &&
-                    r.Status.ToLower() == "aprovado");
+                    // A verificação agora checa se o status da reserva está na lista de status válidos.
+                    statusValidosParaAvaliacao.Contains(r.Status.ToLower()));
 
             if (!reservaValida)
-                return BadRequest("Você só pode avaliar pacotes que você reservou e estão confirmadas.");
+            {
+                // Mensagem de erro mais clara para o frontend.
+                return BadRequest(new { erro = "Você só pode avaliar pacotes com reservas confirmadas ou concluídas." });
+            }
 
             var avaliacao = new Avaliacao
             {
@@ -72,7 +79,7 @@ namespace Decolei.net.Controllers
         {
             var avaliacoes = await _context.Avaliacoes
                 .Where(a => a.PacoteViagem_Id == id && a.Aprovada == true)
-                .Include(a => a.Usuario) // Adicionado para carregar o nome do usuário
+                .Include(a => a.Usuario)
                 .Select(a => new
                 {
                     a.Id,
@@ -91,11 +98,10 @@ namespace Decolei.net.Controllers
         public async Task<IActionResult> ListarAvaliacoesAprovadas([FromQuery] string? destino)
         {
             var query = _context.Avaliacoes
-                .Include(a => a.Usuario) // Adicionado para carregar os dados do usuário
-                .Include(a => a.PacoteViagem) // Adicionado para carregar os dados do pacote
+                .Include(a => a.Usuario)
+                .Include(a => a.PacoteViagem)
                 .Where(a => a.Aprovada == true);
 
-            // Se o parâmetro 'destino' for fornecido, adiciona o filtro à consulta
             if (!string.IsNullOrEmpty(destino))
             {
                 query = query.Where(a => a.PacoteViagem.Destino.Contains(destino));
@@ -121,11 +127,10 @@ namespace Decolei.net.Controllers
         public async Task<IActionResult> ListarAvaliacoesPendentes([FromQuery] string? destino)
         {
             var query = _context.Avaliacoes
-                .Include(a => a.Usuario) // Adicionado para carregar os dados do usuário
-                .Include(a => a.PacoteViagem) // Adicionado para carregar os dados do pacote
+                .Include(a => a.Usuario)
+                .Include(a => a.PacoteViagem)
                 .Where(a => a.Aprovada == false);
 
-            // Se o parâmetro 'destino' for fornecido, adiciona o filtro à consulta
             if (!string.IsNullOrEmpty(destino))
             {
                 query = query.Where(a => a.PacoteViagem.Destino.Contains(destino));
@@ -167,7 +172,6 @@ namespace Decolei.net.Controllers
             }
             else if (dto.Acao?.ToLower() == "rejeitar")
             {
-                // Se a ação for "rejeitar", remove a avaliação do banco de dados.
                 _context.Avaliacoes.Remove(avaliacao);
                 await _context.SaveChangesAsync();
 
@@ -195,15 +199,16 @@ namespace Decolei.net.Controllers
                     Id = a.Id,
                     Nota = a.Nota,
                     Comentario = a.Comentario,
-                    Data = a.Data,
-                    Aprovada = a.Aprovada,
+                    DataCriacao = a.Data, // Renomeado para consistência, se preferir
+                    Status = (bool)a.Aprovada ? "APROVADA" : "PENDENTE", // Adicionando o status
                     Pacote = new
                     {
                         Id = a.PacoteViagem.Id,
-                        Titulo = a.PacoteViagem.Titulo
+                        Titulo = a.PacoteViagem.Titulo,
+                        Destino = a.PacoteViagem.Destino
                     }
                 })
-                .OrderByDescending(a => a.Data)
+                .OrderByDescending(a => a.DataCriacao)
                 .ToListAsync();
 
             return Ok(avaliacoesDoUsuario);

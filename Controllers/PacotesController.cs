@@ -31,12 +31,7 @@ namespace Decolei.net.Controllers
                 pacote.Id,
                 pacote.Titulo,
                 pacote.Descricao,
-
-                // ALTERAÇÃO CRÍTICA AQUI:
-                // Enviamos uma lista de objetos, informando a URL e se é um vídeo.
-                // O nome da propriedade foi mantido como "Imagens" para consistência.
                 Imagens = pacote.Imagens?.Select(midia => new { midia.Url, midia.IsVideo }).ToList(),
-
                 pacote.Destino,
                 pacote.Valor,
                 pacote.DataInicio,
@@ -54,7 +49,8 @@ namespace Decolei.net.Controllers
                     a.Id,
                     a.Comentario,
                     a.Nota,
-                    UsuarioNome = a.Usuario?.NomeCompleto
+                    UsuarioNome = a.Usuario?.NomeCompleto,
+                    Data = a.Data
                 }).ToList(),
                 Reservas = pacote.Reservas?.Select(r => new {
                     r.Id,
