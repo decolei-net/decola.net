@@ -111,6 +111,8 @@ namespace Decolei.net.Controllers
                 .Select(a => new
                 {
                     a.Id,
+                    UsuarioId = a.Usuario_Id,
+                    PacoteId = a.PacoteViagem_Id,
                     Usuario = a.Usuario.NomeCompleto,
                     Pacote = a.PacoteViagem.Titulo,
                     a.Nota,
@@ -140,6 +142,8 @@ namespace Decolei.net.Controllers
                 .Select(a => new
                 {
                     a.Id,
+                    UsuarioId = a.Usuario_Id,
+                    PacoteId = a.PacoteViagem_Id,
                     Usuario = a.Usuario.NomeCompleto,
                     Pacote = a.PacoteViagem.Titulo,
                     a.Nota,
