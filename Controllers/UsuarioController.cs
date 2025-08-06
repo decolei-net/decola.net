@@ -229,9 +229,6 @@ namespace Decolei.net.Controllers
                               <a href='{link}' style='background-color: #007bff; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px;'>Redefinir Senha</a>
                             </p>
                             <hr style='margin: 30px 0;' />
-                            <h3>Token de redefinição</h3>
-                            <p>Se preferir, copie o token abaixo e use diretamente no Swagger ou em outro cliente:</p>
-                            <p style='font-size: 18px; font-weight: bold; color: #555;'>{token}</p>
                             <p><strong>Email associado:</strong> {dto.Email}</p>
                             <br />
                             <p style='font-size: 14px; color: #999;'>Se você não solicitou essa redefinição, pode ignorar este e-mail com segurança.</p>
